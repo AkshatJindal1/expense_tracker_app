@@ -47,10 +47,7 @@ class TransactionDao extends DatabaseAccessor<AppDatabase> with _$TransactionDao
 
   // Delete a transaction and its splits
   Future<void> deleteTransaction(String txnId) async {
-    await transaction(() async {
-      await (delete(splitItems)..where((tbl) => tbl.transactionId.equals(txnId))).go();
-      await (delete(transactions)..where((tbl) => tbl.id.equals(txnId))).go();
-    });
+    await (delete(transactions)..where((t) => t.id.equals(txnId))).go();
   }
 
   Future<TransactionWithEverything> _mapFullTransactions(Transaction txn) async {
