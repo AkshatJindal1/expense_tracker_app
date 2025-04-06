@@ -3,6 +3,487 @@
 part of 'app_database.dart';
 
 // ignore_for_file: type=lint
+class $SplitItemsTable extends SplitItems
+    with TableInfo<$SplitItemsTable, SplitItem> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SplitItemsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: () => const Uuid().v4(),
+  );
+  static const VerificationMeta _transactionIdMeta = const VerificationMeta(
+    'transactionId',
+  );
+  @override
+  late final GeneratedColumn<String> transactionId = GeneratedColumn<String>(
+    'transaction_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<double> amount = GeneratedColumn<double>(
+    'amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _paidForMeta = const VerificationMeta(
+    'paidFor',
+  );
+  @override
+  late final GeneratedColumn<String> paidFor = GeneratedColumn<String>(
+    'paid_for',
+    aliasedName,
+    false,
+    check: () => paidFor.isIn(PaidFor.values.map((e) => e.name).toList()),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _personIdMeta = const VerificationMeta(
+    'personId',
+  );
+  @override
+  late final GeneratedColumn<String> personId = GeneratedColumn<String>(
+    'person_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isSplitwiseMeta = const VerificationMeta(
+    'isSplitwise',
+  );
+  @override
+  late final GeneratedColumn<bool> isSplitwise = GeneratedColumn<bool>(
+    'is_splitwise',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_splitwise" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    transactionId,
+    amount,
+    paidFor,
+    personId,
+    isSplitwise,
+    category,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'split_items';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SplitItem> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('transaction_id')) {
+      context.handle(
+        _transactionIdMeta,
+        transactionId.isAcceptableOrUnknown(
+          data['transaction_id']!,
+          _transactionIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_transactionIdMeta);
+    }
+    if (data.containsKey('amount')) {
+      context.handle(
+        _amountMeta,
+        amount.isAcceptableOrUnknown(data['amount']!, _amountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMeta);
+    }
+    if (data.containsKey('paid_for')) {
+      context.handle(
+        _paidForMeta,
+        paidFor.isAcceptableOrUnknown(data['paid_for']!, _paidForMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_paidForMeta);
+    }
+    if (data.containsKey('person_id')) {
+      context.handle(
+        _personIdMeta,
+        personId.isAcceptableOrUnknown(data['person_id']!, _personIdMeta),
+      );
+    }
+    if (data.containsKey('is_splitwise')) {
+      context.handle(
+        _isSplitwiseMeta,
+        isSplitwise.isAcceptableOrUnknown(
+          data['is_splitwise']!,
+          _isSplitwiseMeta,
+        ),
+      );
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SplitItem map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SplitItem(
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}id'],
+          )!,
+      transactionId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}transaction_id'],
+          )!,
+      amount:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.double,
+            data['${effectivePrefix}amount'],
+          )!,
+      paidFor:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}paid_for'],
+          )!,
+      personId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}person_id'],
+      ),
+      isSplitwise:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.bool,
+            data['${effectivePrefix}is_splitwise'],
+          )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      ),
+    );
+  }
+
+  @override
+  $SplitItemsTable createAlias(String alias) {
+    return $SplitItemsTable(attachedDatabase, alias);
+  }
+}
+
+class SplitItem extends DataClass implements Insertable<SplitItem> {
+  final String id;
+  final String transactionId;
+  final double amount;
+  final String paidFor;
+  final String? personId;
+  final bool isSplitwise;
+  final String? category;
+  const SplitItem({
+    required this.id,
+    required this.transactionId,
+    required this.amount,
+    required this.paidFor,
+    this.personId,
+    required this.isSplitwise,
+    this.category,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['transaction_id'] = Variable<String>(transactionId);
+    map['amount'] = Variable<double>(amount);
+    map['paid_for'] = Variable<String>(paidFor);
+    if (!nullToAbsent || personId != null) {
+      map['person_id'] = Variable<String>(personId);
+    }
+    map['is_splitwise'] = Variable<bool>(isSplitwise);
+    if (!nullToAbsent || category != null) {
+      map['category'] = Variable<String>(category);
+    }
+    return map;
+  }
+
+  SplitItemsCompanion toCompanion(bool nullToAbsent) {
+    return SplitItemsCompanion(
+      id: Value(id),
+      transactionId: Value(transactionId),
+      amount: Value(amount),
+      paidFor: Value(paidFor),
+      personId:
+          personId == null && nullToAbsent
+              ? const Value.absent()
+              : Value(personId),
+      isSplitwise: Value(isSplitwise),
+      category:
+          category == null && nullToAbsent
+              ? const Value.absent()
+              : Value(category),
+    );
+  }
+
+  factory SplitItem.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SplitItem(
+      id: serializer.fromJson<String>(json['id']),
+      transactionId: serializer.fromJson<String>(json['transactionId']),
+      amount: serializer.fromJson<double>(json['amount']),
+      paidFor: serializer.fromJson<String>(json['paidFor']),
+      personId: serializer.fromJson<String?>(json['personId']),
+      isSplitwise: serializer.fromJson<bool>(json['isSplitwise']),
+      category: serializer.fromJson<String?>(json['category']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'transactionId': serializer.toJson<String>(transactionId),
+      'amount': serializer.toJson<double>(amount),
+      'paidFor': serializer.toJson<String>(paidFor),
+      'personId': serializer.toJson<String?>(personId),
+      'isSplitwise': serializer.toJson<bool>(isSplitwise),
+      'category': serializer.toJson<String?>(category),
+    };
+  }
+
+  SplitItem copyWith({
+    String? id,
+    String? transactionId,
+    double? amount,
+    String? paidFor,
+    Value<String?> personId = const Value.absent(),
+    bool? isSplitwise,
+    Value<String?> category = const Value.absent(),
+  }) => SplitItem(
+    id: id ?? this.id,
+    transactionId: transactionId ?? this.transactionId,
+    amount: amount ?? this.amount,
+    paidFor: paidFor ?? this.paidFor,
+    personId: personId.present ? personId.value : this.personId,
+    isSplitwise: isSplitwise ?? this.isSplitwise,
+    category: category.present ? category.value : this.category,
+  );
+  SplitItem copyWithCompanion(SplitItemsCompanion data) {
+    return SplitItem(
+      id: data.id.present ? data.id.value : this.id,
+      transactionId:
+          data.transactionId.present
+              ? data.transactionId.value
+              : this.transactionId,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      paidFor: data.paidFor.present ? data.paidFor.value : this.paidFor,
+      personId: data.personId.present ? data.personId.value : this.personId,
+      isSplitwise:
+          data.isSplitwise.present ? data.isSplitwise.value : this.isSplitwise,
+      category: data.category.present ? data.category.value : this.category,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SplitItem(')
+          ..write('id: $id, ')
+          ..write('transactionId: $transactionId, ')
+          ..write('amount: $amount, ')
+          ..write('paidFor: $paidFor, ')
+          ..write('personId: $personId, ')
+          ..write('isSplitwise: $isSplitwise, ')
+          ..write('category: $category')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    transactionId,
+    amount,
+    paidFor,
+    personId,
+    isSplitwise,
+    category,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SplitItem &&
+          other.id == this.id &&
+          other.transactionId == this.transactionId &&
+          other.amount == this.amount &&
+          other.paidFor == this.paidFor &&
+          other.personId == this.personId &&
+          other.isSplitwise == this.isSplitwise &&
+          other.category == this.category);
+}
+
+class SplitItemsCompanion extends UpdateCompanion<SplitItem> {
+  final Value<String> id;
+  final Value<String> transactionId;
+  final Value<double> amount;
+  final Value<String> paidFor;
+  final Value<String?> personId;
+  final Value<bool> isSplitwise;
+  final Value<String?> category;
+  final Value<int> rowid;
+  const SplitItemsCompanion({
+    this.id = const Value.absent(),
+    this.transactionId = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.paidFor = const Value.absent(),
+    this.personId = const Value.absent(),
+    this.isSplitwise = const Value.absent(),
+    this.category = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SplitItemsCompanion.insert({
+    this.id = const Value.absent(),
+    required String transactionId,
+    required double amount,
+    required String paidFor,
+    this.personId = const Value.absent(),
+    this.isSplitwise = const Value.absent(),
+    this.category = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : transactionId = Value(transactionId),
+       amount = Value(amount),
+       paidFor = Value(paidFor);
+  static Insertable<SplitItem> custom({
+    Expression<String>? id,
+    Expression<String>? transactionId,
+    Expression<double>? amount,
+    Expression<String>? paidFor,
+    Expression<String>? personId,
+    Expression<bool>? isSplitwise,
+    Expression<String>? category,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (transactionId != null) 'transaction_id': transactionId,
+      if (amount != null) 'amount': amount,
+      if (paidFor != null) 'paid_for': paidFor,
+      if (personId != null) 'person_id': personId,
+      if (isSplitwise != null) 'is_splitwise': isSplitwise,
+      if (category != null) 'category': category,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SplitItemsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? transactionId,
+    Value<double>? amount,
+    Value<String>? paidFor,
+    Value<String?>? personId,
+    Value<bool>? isSplitwise,
+    Value<String?>? category,
+    Value<int>? rowid,
+  }) {
+    return SplitItemsCompanion(
+      id: id ?? this.id,
+      transactionId: transactionId ?? this.transactionId,
+      amount: amount ?? this.amount,
+      paidFor: paidFor ?? this.paidFor,
+      personId: personId ?? this.personId,
+      isSplitwise: isSplitwise ?? this.isSplitwise,
+      category: category ?? this.category,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (transactionId.present) {
+      map['transaction_id'] = Variable<String>(transactionId.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<double>(amount.value);
+    }
+    if (paidFor.present) {
+      map['paid_for'] = Variable<String>(paidFor.value);
+    }
+    if (personId.present) {
+      map['person_id'] = Variable<String>(personId.value);
+    }
+    if (isSplitwise.present) {
+      map['is_splitwise'] = Variable<bool>(isSplitwise.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SplitItemsCompanion(')
+          ..write('id: $id, ')
+          ..write('transactionId: $transactionId, ')
+          ..write('amount: $amount, ')
+          ..write('paidFor: $paidFor, ')
+          ..write('personId: $personId, ')
+          ..write('isSplitwise: $isSplitwise, ')
+          ..write('category: $category, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $TransactionsTable extends Transactions
     with TableInfo<$TransactionsTable, Transaction> {
   @override
@@ -27,6 +508,10 @@ class $TransactionsTable extends Transactions
     'transaction_type',
     aliasedName,
     false,
+    check:
+        () => transactionType.isIn(
+          TransactionType.values.map((e) => e.name).toList(),
+        ),
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
@@ -92,6 +577,18 @@ class $TransactionsTable extends Transactions
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _needTypeMeta = const VerificationMeta(
+    'needType',
+  );
+  @override
+  late final GeneratedColumn<String> needType = GeneratedColumn<String>(
+    'need_type',
+    aliasedName,
+    true,
+    check: () => needType.isIn(NeedType.values.map((e) => e.name).toList()),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _noteMeta = const VerificationMeta('note');
   @override
   late final GeneratedColumn<String> note = GeneratedColumn<String>(
@@ -144,6 +641,7 @@ class $TransactionsTable extends Transactions
     fee,
     feeSourceId,
     category,
+    needType,
     note,
     timestamp,
     incomeSource,
@@ -219,6 +717,12 @@ class $TransactionsTable extends Transactions
       context.handle(
         _categoryMeta,
         category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    }
+    if (data.containsKey('need_type')) {
+      context.handle(
+        _needTypeMeta,
+        needType.isAcceptableOrUnknown(data['need_type']!, _needTypeMeta),
       );
     }
     if (data.containsKey('note')) {
@@ -298,6 +802,10 @@ class $TransactionsTable extends Transactions
         DriftSqlType.string,
         data['${effectivePrefix}category'],
       ),
+      needType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}need_type'],
+      ),
       note: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}note'],
@@ -333,6 +841,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
   final double? fee;
   final String? feeSourceId;
   final String? category;
+  final String? needType;
   final String? note;
   final DateTime timestamp;
   final String? incomeSource;
@@ -346,6 +855,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     this.fee,
     this.feeSourceId,
     this.category,
+    this.needType,
     this.note,
     required this.timestamp,
     this.incomeSource,
@@ -369,6 +879,9 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     }
     if (!nullToAbsent || category != null) {
       map['category'] = Variable<String>(category);
+    }
+    if (!nullToAbsent || needType != null) {
+      map['need_type'] = Variable<String>(needType);
     }
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
@@ -402,6 +915,10 @@ class Transaction extends DataClass implements Insertable<Transaction> {
           category == null && nullToAbsent
               ? const Value.absent()
               : Value(category),
+      needType:
+          needType == null && nullToAbsent
+              ? const Value.absent()
+              : Value(needType),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       timestamp: Value(timestamp),
       incomeSource:
@@ -429,6 +946,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       fee: serializer.fromJson<double?>(json['fee']),
       feeSourceId: serializer.fromJson<String?>(json['feeSourceId']),
       category: serializer.fromJson<String?>(json['category']),
+      needType: serializer.fromJson<String?>(json['needType']),
       note: serializer.fromJson<String?>(json['note']),
       timestamp: serializer.fromJson<DateTime>(json['timestamp']),
       incomeSource: serializer.fromJson<String?>(json['incomeSource']),
@@ -447,6 +965,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       'fee': serializer.toJson<double?>(fee),
       'feeSourceId': serializer.toJson<String?>(feeSourceId),
       'category': serializer.toJson<String?>(category),
+      'needType': serializer.toJson<String?>(needType),
       'note': serializer.toJson<String?>(note),
       'timestamp': serializer.toJson<DateTime>(timestamp),
       'incomeSource': serializer.toJson<String?>(incomeSource),
@@ -463,6 +982,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     Value<double?> fee = const Value.absent(),
     Value<String?> feeSourceId = const Value.absent(),
     Value<String?> category = const Value.absent(),
+    Value<String?> needType = const Value.absent(),
     Value<String?> note = const Value.absent(),
     DateTime? timestamp,
     Value<String?> incomeSource = const Value.absent(),
@@ -476,6 +996,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     fee: fee.present ? fee.value : this.fee,
     feeSourceId: feeSourceId.present ? feeSourceId.value : this.feeSourceId,
     category: category.present ? category.value : this.category,
+    needType: needType.present ? needType.value : this.needType,
     note: note.present ? note.value : this.note,
     timestamp: timestamp ?? this.timestamp,
     incomeSource: incomeSource.present ? incomeSource.value : this.incomeSource,
@@ -497,6 +1018,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       feeSourceId:
           data.feeSourceId.present ? data.feeSourceId.value : this.feeSourceId,
       category: data.category.present ? data.category.value : this.category,
+      needType: data.needType.present ? data.needType.value : this.needType,
       note: data.note.present ? data.note.value : this.note,
       timestamp: data.timestamp.present ? data.timestamp.value : this.timestamp,
       incomeSource:
@@ -521,6 +1043,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
           ..write('fee: $fee, ')
           ..write('feeSourceId: $feeSourceId, ')
           ..write('category: $category, ')
+          ..write('needType: $needType, ')
           ..write('note: $note, ')
           ..write('timestamp: $timestamp, ')
           ..write('incomeSource: $incomeSource, ')
@@ -539,6 +1062,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     fee,
     feeSourceId,
     category,
+    needType,
     note,
     timestamp,
     incomeSource,
@@ -556,6 +1080,7 @@ class Transaction extends DataClass implements Insertable<Transaction> {
           other.fee == this.fee &&
           other.feeSourceId == this.feeSourceId &&
           other.category == this.category &&
+          other.needType == this.needType &&
           other.note == this.note &&
           other.timestamp == this.timestamp &&
           other.incomeSource == this.incomeSource &&
@@ -571,6 +1096,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
   final Value<double?> fee;
   final Value<String?> feeSourceId;
   final Value<String?> category;
+  final Value<String?> needType;
   final Value<String?> note;
   final Value<DateTime> timestamp;
   final Value<String?> incomeSource;
@@ -585,6 +1111,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     this.fee = const Value.absent(),
     this.feeSourceId = const Value.absent(),
     this.category = const Value.absent(),
+    this.needType = const Value.absent(),
     this.note = const Value.absent(),
     this.timestamp = const Value.absent(),
     this.incomeSource = const Value.absent(),
@@ -600,6 +1127,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     this.fee = const Value.absent(),
     this.feeSourceId = const Value.absent(),
     this.category = const Value.absent(),
+    this.needType = const Value.absent(),
     this.note = const Value.absent(),
     required DateTime timestamp,
     this.incomeSource = const Value.absent(),
@@ -618,6 +1146,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     Expression<double>? fee,
     Expression<String>? feeSourceId,
     Expression<String>? category,
+    Expression<String>? needType,
     Expression<String>? note,
     Expression<DateTime>? timestamp,
     Expression<String>? incomeSource,
@@ -633,6 +1162,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
       if (fee != null) 'fee': fee,
       if (feeSourceId != null) 'fee_source_id': feeSourceId,
       if (category != null) 'category': category,
+      if (needType != null) 'need_type': needType,
       if (note != null) 'note': note,
       if (timestamp != null) 'timestamp': timestamp,
       if (incomeSource != null) 'income_source': incomeSource,
@@ -650,6 +1180,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     Value<double?>? fee,
     Value<String?>? feeSourceId,
     Value<String?>? category,
+    Value<String?>? needType,
     Value<String?>? note,
     Value<DateTime>? timestamp,
     Value<String?>? incomeSource,
@@ -665,6 +1196,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
       fee: fee ?? this.fee,
       feeSourceId: feeSourceId ?? this.feeSourceId,
       category: category ?? this.category,
+      needType: needType ?? this.needType,
       note: note ?? this.note,
       timestamp: timestamp ?? this.timestamp,
       incomeSource: incomeSource ?? this.incomeSource,
@@ -700,6 +1232,9 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     if (category.present) {
       map['category'] = Variable<String>(category.value);
     }
+    if (needType.present) {
+      map['need_type'] = Variable<String>(needType.value);
+    }
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
@@ -729,6 +1264,7 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
           ..write('fee: $fee, ')
           ..write('feeSourceId: $feeSourceId, ')
           ..write('category: $category, ')
+          ..write('needType: $needType, ')
           ..write('note: $note, ')
           ..write('timestamp: $timestamp, ')
           ..write('incomeSource: $incomeSource, ')
@@ -739,17 +1275,834 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
   }
 }
 
+class $SourcesTable extends Sources with TableInfo<$SourcesTable, Source> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SourcesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: () => const Uuid().v4(),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    check: () => type.isIn(SourceType.values.map((e) => e.name).toList()),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isVirtualMeta = const VerificationMeta(
+    'isVirtual',
+  );
+  @override
+  late final GeneratedColumn<bool> isVirtual = GeneratedColumn<bool>(
+    'is_virtual',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_virtual" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, type, isVirtual];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sources';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Source> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('is_virtual')) {
+      context.handle(
+        _isVirtualMeta,
+        isVirtual.isAcceptableOrUnknown(data['is_virtual']!, _isVirtualMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Source map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Source(
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}id'],
+          )!,
+      name:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}name'],
+          )!,
+      type:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}type'],
+          )!,
+      isVirtual:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.bool,
+            data['${effectivePrefix}is_virtual'],
+          )!,
+    );
+  }
+
+  @override
+  $SourcesTable createAlias(String alias) {
+    return $SourcesTable(attachedDatabase, alias);
+  }
+}
+
+class Source extends DataClass implements Insertable<Source> {
+  final String id;
+  final String name;
+  final String type;
+  final bool isVirtual;
+  const Source({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.isVirtual,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    map['type'] = Variable<String>(type);
+    map['is_virtual'] = Variable<bool>(isVirtual);
+    return map;
+  }
+
+  SourcesCompanion toCompanion(bool nullToAbsent) {
+    return SourcesCompanion(
+      id: Value(id),
+      name: Value(name),
+      type: Value(type),
+      isVirtual: Value(isVirtual),
+    );
+  }
+
+  factory Source.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Source(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      type: serializer.fromJson<String>(json['type']),
+      isVirtual: serializer.fromJson<bool>(json['isVirtual']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'type': serializer.toJson<String>(type),
+      'isVirtual': serializer.toJson<bool>(isVirtual),
+    };
+  }
+
+  Source copyWith({String? id, String? name, String? type, bool? isVirtual}) =>
+      Source(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        type: type ?? this.type,
+        isVirtual: isVirtual ?? this.isVirtual,
+      );
+  Source copyWithCompanion(SourcesCompanion data) {
+    return Source(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      type: data.type.present ? data.type.value : this.type,
+      isVirtual: data.isVirtual.present ? data.isVirtual.value : this.isVirtual,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Source(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('type: $type, ')
+          ..write('isVirtual: $isVirtual')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, type, isVirtual);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Source &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.type == this.type &&
+          other.isVirtual == this.isVirtual);
+}
+
+class SourcesCompanion extends UpdateCompanion<Source> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String> type;
+  final Value<bool> isVirtual;
+  final Value<int> rowid;
+  const SourcesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.type = const Value.absent(),
+    this.isVirtual = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SourcesCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    required String type,
+    this.isVirtual = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : name = Value(name),
+       type = Value(type);
+  static Insertable<Source> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? type,
+    Expression<bool>? isVirtual,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (type != null) 'type': type,
+      if (isVirtual != null) 'is_virtual': isVirtual,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SourcesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String>? type,
+    Value<bool>? isVirtual,
+    Value<int>? rowid,
+  }) {
+    return SourcesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      type: type ?? this.type,
+      isVirtual: isVirtual ?? this.isVirtual,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (isVirtual.present) {
+      map['is_virtual'] = Variable<bool>(isVirtual.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SourcesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('type: $type, ')
+          ..write('isVirtual: $isVirtual, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PersonsTable extends Persons with TableInfo<$PersonsTable, Person> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PersonsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: () => const Uuid().v4(),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _phoneMeta = const VerificationMeta('phone');
+  @override
+  late final GeneratedColumn<String> phone = GeneratedColumn<String>(
+    'phone',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, phone];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'persons';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Person> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('phone')) {
+      context.handle(
+        _phoneMeta,
+        phone.isAcceptableOrUnknown(data['phone']!, _phoneMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Person map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Person(
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}id'],
+          )!,
+      name:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}name'],
+          )!,
+      phone: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}phone'],
+      ),
+    );
+  }
+
+  @override
+  $PersonsTable createAlias(String alias) {
+    return $PersonsTable(attachedDatabase, alias);
+  }
+}
+
+class Person extends DataClass implements Insertable<Person> {
+  final String id;
+  final String name;
+  final String? phone;
+  const Person({required this.id, required this.name, this.phone});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || phone != null) {
+      map['phone'] = Variable<String>(phone);
+    }
+    return map;
+  }
+
+  PersonsCompanion toCompanion(bool nullToAbsent) {
+    return PersonsCompanion(
+      id: Value(id),
+      name: Value(name),
+      phone:
+          phone == null && nullToAbsent ? const Value.absent() : Value(phone),
+    );
+  }
+
+  factory Person.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Person(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      phone: serializer.fromJson<String?>(json['phone']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'phone': serializer.toJson<String?>(phone),
+    };
+  }
+
+  Person copyWith({
+    String? id,
+    String? name,
+    Value<String?> phone = const Value.absent(),
+  }) => Person(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    phone: phone.present ? phone.value : this.phone,
+  );
+  Person copyWithCompanion(PersonsCompanion data) {
+    return Person(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      phone: data.phone.present ? data.phone.value : this.phone,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Person(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('phone: $phone')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, phone);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Person &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.phone == this.phone);
+}
+
+class PersonsCompanion extends UpdateCompanion<Person> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String?> phone;
+  final Value<int> rowid;
+  const PersonsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.phone = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PersonsCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    this.phone = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : name = Value(name);
+  static Insertable<Person> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? phone,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (phone != null) 'phone': phone,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PersonsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String?>? phone,
+    Value<int>? rowid,
+  }) {
+    return PersonsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      phone: phone ?? this.phone,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (phone.present) {
+      map['phone'] = Variable<String>(phone.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PersonsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('phone: $phone, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
+  late final $SplitItemsTable splitItems = $SplitItemsTable(this);
   late final $TransactionsTable transactions = $TransactionsTable(this);
+  late final $SourcesTable sources = $SourcesTable(this);
+  late final $PersonsTable persons = $PersonsTable(this);
+  late final TransactionDao transactionDao = TransactionDao(
+    this as AppDatabase,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [transactions];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    splitItems,
+    transactions,
+    sources,
+    persons,
+  ];
 }
 
+typedef $$SplitItemsTableCreateCompanionBuilder =
+    SplitItemsCompanion Function({
+      Value<String> id,
+      required String transactionId,
+      required double amount,
+      required String paidFor,
+      Value<String?> personId,
+      Value<bool> isSplitwise,
+      Value<String?> category,
+      Value<int> rowid,
+    });
+typedef $$SplitItemsTableUpdateCompanionBuilder =
+    SplitItemsCompanion Function({
+      Value<String> id,
+      Value<String> transactionId,
+      Value<double> amount,
+      Value<String> paidFor,
+      Value<String?> personId,
+      Value<bool> isSplitwise,
+      Value<String?> category,
+      Value<int> rowid,
+    });
+
+class $$SplitItemsTableFilterComposer
+    extends Composer<_$AppDatabase, $SplitItemsTable> {
+  $$SplitItemsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get transactionId => $composableBuilder(
+    column: $table.transactionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get paidFor => $composableBuilder(
+    column: $table.paidFor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get personId => $composableBuilder(
+    column: $table.personId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isSplitwise => $composableBuilder(
+    column: $table.isSplitwise,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SplitItemsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SplitItemsTable> {
+  $$SplitItemsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get transactionId => $composableBuilder(
+    column: $table.transactionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get paidFor => $composableBuilder(
+    column: $table.paidFor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get personId => $composableBuilder(
+    column: $table.personId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isSplitwise => $composableBuilder(
+    column: $table.isSplitwise,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SplitItemsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SplitItemsTable> {
+  $$SplitItemsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get transactionId => $composableBuilder(
+    column: $table.transactionId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get amount =>
+      $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<String> get paidFor =>
+      $composableBuilder(column: $table.paidFor, builder: (column) => column);
+
+  GeneratedColumn<String> get personId =>
+      $composableBuilder(column: $table.personId, builder: (column) => column);
+
+  GeneratedColumn<bool> get isSplitwise => $composableBuilder(
+    column: $table.isSplitwise,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+}
+
+class $$SplitItemsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SplitItemsTable,
+          SplitItem,
+          $$SplitItemsTableFilterComposer,
+          $$SplitItemsTableOrderingComposer,
+          $$SplitItemsTableAnnotationComposer,
+          $$SplitItemsTableCreateCompanionBuilder,
+          $$SplitItemsTableUpdateCompanionBuilder,
+          (
+            SplitItem,
+            BaseReferences<_$AppDatabase, $SplitItemsTable, SplitItem>,
+          ),
+          SplitItem,
+          PrefetchHooks Function()
+        > {
+  $$SplitItemsTableTableManager(_$AppDatabase db, $SplitItemsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$SplitItemsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$SplitItemsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () => $$SplitItemsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> transactionId = const Value.absent(),
+                Value<double> amount = const Value.absent(),
+                Value<String> paidFor = const Value.absent(),
+                Value<String?> personId = const Value.absent(),
+                Value<bool> isSplitwise = const Value.absent(),
+                Value<String?> category = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SplitItemsCompanion(
+                id: id,
+                transactionId: transactionId,
+                amount: amount,
+                paidFor: paidFor,
+                personId: personId,
+                isSplitwise: isSplitwise,
+                category: category,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                required String transactionId,
+                required double amount,
+                required String paidFor,
+                Value<String?> personId = const Value.absent(),
+                Value<bool> isSplitwise = const Value.absent(),
+                Value<String?> category = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SplitItemsCompanion.insert(
+                id: id,
+                transactionId: transactionId,
+                amount: amount,
+                paidFor: paidFor,
+                personId: personId,
+                isSplitwise: isSplitwise,
+                category: category,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SplitItemsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SplitItemsTable,
+      SplitItem,
+      $$SplitItemsTableFilterComposer,
+      $$SplitItemsTableOrderingComposer,
+      $$SplitItemsTableAnnotationComposer,
+      $$SplitItemsTableCreateCompanionBuilder,
+      $$SplitItemsTableUpdateCompanionBuilder,
+      (SplitItem, BaseReferences<_$AppDatabase, $SplitItemsTable, SplitItem>),
+      SplitItem,
+      PrefetchHooks Function()
+    >;
 typedef $$TransactionsTableCreateCompanionBuilder =
     TransactionsCompanion Function({
       Value<String> id,
@@ -760,6 +2113,7 @@ typedef $$TransactionsTableCreateCompanionBuilder =
       Value<double?> fee,
       Value<String?> feeSourceId,
       Value<String?> category,
+      Value<String?> needType,
       Value<String?> note,
       required DateTime timestamp,
       Value<String?> incomeSource,
@@ -776,6 +2130,7 @@ typedef $$TransactionsTableUpdateCompanionBuilder =
       Value<double?> fee,
       Value<String?> feeSourceId,
       Value<String?> category,
+      Value<String?> needType,
       Value<String?> note,
       Value<DateTime> timestamp,
       Value<String?> incomeSource,
@@ -829,6 +2184,11 @@ class $$TransactionsTableFilterComposer
 
   ColumnFilters<String> get category => $composableBuilder(
     column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get needType => $composableBuilder(
+    column: $table.needType,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -902,6 +2262,11 @@ class $$TransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get needType => $composableBuilder(
+    column: $table.needType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get note => $composableBuilder(
     column: $table.note,
     builder: (column) => ColumnOrderings(column),
@@ -962,6 +2327,9 @@ class $$TransactionsTableAnnotationComposer
   GeneratedColumn<String> get category =>
       $composableBuilder(column: $table.category, builder: (column) => column);
 
+  GeneratedColumn<String> get needType =>
+      $composableBuilder(column: $table.needType, builder: (column) => column);
+
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
 
@@ -1019,6 +2387,7 @@ class $$TransactionsTableTableManager
                 Value<double?> fee = const Value.absent(),
                 Value<String?> feeSourceId = const Value.absent(),
                 Value<String?> category = const Value.absent(),
+                Value<String?> needType = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<DateTime> timestamp = const Value.absent(),
                 Value<String?> incomeSource = const Value.absent(),
@@ -1033,6 +2402,7 @@ class $$TransactionsTableTableManager
                 fee: fee,
                 feeSourceId: feeSourceId,
                 category: category,
+                needType: needType,
                 note: note,
                 timestamp: timestamp,
                 incomeSource: incomeSource,
@@ -1049,6 +2419,7 @@ class $$TransactionsTableTableManager
                 Value<double?> fee = const Value.absent(),
                 Value<String?> feeSourceId = const Value.absent(),
                 Value<String?> category = const Value.absent(),
+                Value<String?> needType = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 required DateTime timestamp,
                 Value<String?> incomeSource = const Value.absent(),
@@ -1063,6 +2434,7 @@ class $$TransactionsTableTableManager
                 fee: fee,
                 feeSourceId: feeSourceId,
                 category: category,
+                needType: needType,
                 note: note,
                 timestamp: timestamp,
                 incomeSource: incomeSource,
@@ -1101,10 +2473,361 @@ typedef $$TransactionsTableProcessedTableManager =
       Transaction,
       PrefetchHooks Function()
     >;
+typedef $$SourcesTableCreateCompanionBuilder =
+    SourcesCompanion Function({
+      Value<String> id,
+      required String name,
+      required String type,
+      Value<bool> isVirtual,
+      Value<int> rowid,
+    });
+typedef $$SourcesTableUpdateCompanionBuilder =
+    SourcesCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<String> type,
+      Value<bool> isVirtual,
+      Value<int> rowid,
+    });
+
+class $$SourcesTableFilterComposer
+    extends Composer<_$AppDatabase, $SourcesTable> {
+  $$SourcesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isVirtual => $composableBuilder(
+    column: $table.isVirtual,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SourcesTableOrderingComposer
+    extends Composer<_$AppDatabase, $SourcesTable> {
+  $$SourcesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isVirtual => $composableBuilder(
+    column: $table.isVirtual,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SourcesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SourcesTable> {
+  $$SourcesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<bool> get isVirtual =>
+      $composableBuilder(column: $table.isVirtual, builder: (column) => column);
+}
+
+class $$SourcesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SourcesTable,
+          Source,
+          $$SourcesTableFilterComposer,
+          $$SourcesTableOrderingComposer,
+          $$SourcesTableAnnotationComposer,
+          $$SourcesTableCreateCompanionBuilder,
+          $$SourcesTableUpdateCompanionBuilder,
+          (Source, BaseReferences<_$AppDatabase, $SourcesTable, Source>),
+          Source,
+          PrefetchHooks Function()
+        > {
+  $$SourcesTableTableManager(_$AppDatabase db, $SourcesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$SourcesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$SourcesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () => $$SourcesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<bool> isVirtual = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SourcesCompanion(
+                id: id,
+                name: name,
+                type: type,
+                isVirtual: isVirtual,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                required String name,
+                required String type,
+                Value<bool> isVirtual = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SourcesCompanion.insert(
+                id: id,
+                name: name,
+                type: type,
+                isVirtual: isVirtual,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SourcesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SourcesTable,
+      Source,
+      $$SourcesTableFilterComposer,
+      $$SourcesTableOrderingComposer,
+      $$SourcesTableAnnotationComposer,
+      $$SourcesTableCreateCompanionBuilder,
+      $$SourcesTableUpdateCompanionBuilder,
+      (Source, BaseReferences<_$AppDatabase, $SourcesTable, Source>),
+      Source,
+      PrefetchHooks Function()
+    >;
+typedef $$PersonsTableCreateCompanionBuilder =
+    PersonsCompanion Function({
+      Value<String> id,
+      required String name,
+      Value<String?> phone,
+      Value<int> rowid,
+    });
+typedef $$PersonsTableUpdateCompanionBuilder =
+    PersonsCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<String?> phone,
+      Value<int> rowid,
+    });
+
+class $$PersonsTableFilterComposer
+    extends Composer<_$AppDatabase, $PersonsTable> {
+  $$PersonsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get phone => $composableBuilder(
+    column: $table.phone,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PersonsTableOrderingComposer
+    extends Composer<_$AppDatabase, $PersonsTable> {
+  $$PersonsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get phone => $composableBuilder(
+    column: $table.phone,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PersonsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PersonsTable> {
+  $$PersonsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get phone =>
+      $composableBuilder(column: $table.phone, builder: (column) => column);
+}
+
+class $$PersonsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PersonsTable,
+          Person,
+          $$PersonsTableFilterComposer,
+          $$PersonsTableOrderingComposer,
+          $$PersonsTableAnnotationComposer,
+          $$PersonsTableCreateCompanionBuilder,
+          $$PersonsTableUpdateCompanionBuilder,
+          (Person, BaseReferences<_$AppDatabase, $PersonsTable, Person>),
+          Person,
+          PrefetchHooks Function()
+        > {
+  $$PersonsTableTableManager(_$AppDatabase db, $PersonsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$PersonsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$PersonsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () => $$PersonsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> phone = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PersonsCompanion(
+                id: id,
+                name: name,
+                phone: phone,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                required String name,
+                Value<String?> phone = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PersonsCompanion.insert(
+                id: id,
+                name: name,
+                phone: phone,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PersonsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PersonsTable,
+      Person,
+      $$PersonsTableFilterComposer,
+      $$PersonsTableOrderingComposer,
+      $$PersonsTableAnnotationComposer,
+      $$PersonsTableCreateCompanionBuilder,
+      $$PersonsTableUpdateCompanionBuilder,
+      (Person, BaseReferences<_$AppDatabase, $PersonsTable, Person>),
+      Person,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
+  $$SplitItemsTableTableManager get splitItems =>
+      $$SplitItemsTableTableManager(_db, _db.splitItems);
   $$TransactionsTableTableManager get transactions =>
       $$TransactionsTableTableManager(_db, _db.transactions);
+  $$SourcesTableTableManager get sources =>
+      $$SourcesTableTableManager(_db, _db.sources);
+  $$PersonsTableTableManager get persons =>
+      $$PersonsTableTableManager(_db, _db.persons);
 }

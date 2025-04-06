@@ -1,10 +1,13 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:expense_tracker_app/core/models/enums.dart';
+
 class Transactions extends Table {
   TextColumn get id => text().clientDefault(() => const Uuid().v4())();
 
-  TextColumn get transactionType => text()(); // Expense, Transfer, Income, Investment, Adjustment
+  TextColumn get transactionType => text().check(
+    transactionType.isIn(TransactionType.values.map((e) => e.name).toList()))();
 
   RealColumn get amount => real()(); // The main amount involved
 
@@ -17,6 +20,9 @@ class Transactions extends Table {
   TextColumn get feeSourceId => text().nullable()(); // Fee source if different
 
   TextColumn get category => text().nullable()(); // Category for expenses/investments
+
+  TextColumn get needType => text().nullable().check(
+    needType.isIn(NeedType.values.map((e) => e.name).toList()))();
 
   TextColumn get note => text().nullable()();
 
