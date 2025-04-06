@@ -10,10 +10,11 @@ import 'tables/transactions.dart';
 import 'tables/sources.dart';
 import 'tables/persons.dart';
 import 'daos/transaction_dao.dart';
+import 'daos/source_dao.dart';
 
 part 'app_database.g.dart'; // will be generated
 
-@DriftDatabase(tables: [SplitItems, Transactions, Sources, Persons], daos: [TransactionDao])
+@DriftDatabase(tables: [SplitItems, Transactions, Sources, Persons], daos: [TransactionDao, SourceDao])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 

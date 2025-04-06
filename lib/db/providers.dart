@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app_database.dart';
 import 'daos/transaction_dao.dart';
+import 'daos/source_dao.dart';
 
 /// Provides a singleton instance of the AppDatabase
 final appDatabaseProvider = Provider<AppDatabase>((ref) {
@@ -15,7 +16,7 @@ final transactionDaoProvider = Provider<TransactionDao>((ref) {
   return TransactionDao(db);
 });
 
-final someScopedDaoProvider = Provider.autoDispose<TransactionDao>((ref) {
+final sourceDaoProvider = Provider<SourceDao>((ref) {
   final db = ref.watch(appDatabaseProvider);
-  return TransactionDao(db);
+  return SourceDao(db);
 });

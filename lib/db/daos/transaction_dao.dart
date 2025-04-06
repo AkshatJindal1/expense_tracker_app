@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import '../app_database.dart';
 import '../tables/transactions.dart';
 import '../tables/split_items.dart';
+import 'package:expense_tracker_app/core/models/transaction_with_everything.dart';
 
 part 'transaction_dao.g.dart';
 
@@ -21,24 +22,16 @@ class TransactionDao extends DatabaseAccessor<AppDatabase> with _$TransactionDao
   }
 
   // Get all transactions (basic)
-  Future<List<TransactionWithSplits>> getAllTransactions() async {
+  Future<List<TransactionWithEverything>> getAllTransactions() async {
     final txnRows = await select(transactions).get();
-    return Future.wait(txnRows.map(_mapTransactionWithSplits).toList());
+    return Future.wait(txnRows.map(_mapFullTransactions).toList());
   }
 
   // Watch all transactions (stream for UI)
-  Stream<List<TransactionWithSplits>> watchAllTransactions() {
+  Stream<List<TransactionWithEverything>> watchAllTransactions() {
     return select(transactions).watch().asyncMap((txns) async {
-      return Future.wait(txns.map(_mapTransactionWithSplits).toList());
+      return Future.wait(txns.map(_mapFullTransactions).toList());
     });
-  }
-
-  // Combine a transaction with its split items
-  Future<TransactionWithSplits> _mapTransactionWithSplits(Transaction txn) async {
-    final splits = await (select(splitItems)
-          ..where((tbl) => tbl.transactionId.equals(txn.id)))
-        .get();
-    return TransactionWithSplits(transaction: txn, splits: splits);
   }
 
   // Delete a transaction and its splits
@@ -48,12 +41,36 @@ class TransactionDao extends DatabaseAccessor<AppDatabase> with _$TransactionDao
       await (delete(transactions)..where((tbl) => tbl.id.equals(txnId))).go();
     });
   }
-}
 
-/// DTO to return a transaction with its split items
-class TransactionWithSplits {
-  final Transaction transaction;
-  final List<SplitItem> splits;
+  Future<TransactionWithEverything> _mapFullTransactions(Transaction txn) async {
+    // final txnRows = await select(transactions).get();
 
-  TransactionWithSplits({required this.transaction, required this.splits});
+    final source = await (select(sources)..where((s) => s.id.equals(txn.sourceId))).getSingleOrNull();
+    final destination = txn.toSourceId != null
+        ? await (select(sources)..where((s) => s.id.equals(txn.toSourceId!))).getSingleOrNull()
+        : null;
+    final feeSource = txn.feeSourceId != null
+        ? await (select(sources)..where((s) => s.id.equals(txn.feeSourceId!))).getSingleOrNull()
+        : null;
+
+    final splitJoin = (select(splitItems)..where((s) => s.transactionId.equals(txn.id)))
+        .join([leftOuterJoin(persons, persons.id.equalsExp(splitItems.personId))]);
+
+    final joinedSplits = await splitJoin.get();
+
+    final splits = joinedSplits.map((row) {
+      final split = row.readTable(splitItems);
+      final person = row.readTableOrNull(persons);
+      return SplitItemWithPerson(split: split, person: person);
+    }).toList();
+
+    return TransactionWithEverything(
+      txn: txn,
+      source: source,
+      destination: destination,
+      feeSource: feeSource,
+      splits: splits,
+    );
+  }
+
 }

@@ -1,19 +1,21 @@
 import 'package:drift/drift.dart';
-import 'package:uuid/uuid.dart';
 
-import 'package:expense_tracker_app/core/models/enums.dart';
+import 'package:expense_tracker_app/db/tables/persons.dart';
+import 'package:expense_tracker_app/db/tables/transactions.dart';
+
 
 class SplitItems extends Table {
-  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
+  TextColumn get id => text()();
 
-  TextColumn get transactionId => text()(); // FK to Transactions table
+  @ReferenceName('transaction')
+  TextColumn get transactionId => text().references(Transactions, #id,onDelete: KeyAction.cascade)(); // FK to Transactions table
 
   RealColumn get amount => real()();
 
-  TextColumn get paidFor => text().check(
-    paidFor.isIn(PaidFor.values.map((e) => e.name).toList()))();
+  TextColumn get paidFor => text()();
 
-  TextColumn get personId => text().nullable()(); // Optional FK for lending
+  @ReferenceName('person')
+  TextColumn get personId => text().nullable().references(Persons, #id)(); // Optional FK for lending
 
   BoolColumn get isSplitwise => boolean().withDefault(const Constant(false))();
 
