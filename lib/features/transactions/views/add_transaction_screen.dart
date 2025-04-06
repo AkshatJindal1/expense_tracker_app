@@ -349,7 +349,6 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                       ?  <SplitItemsCompanion>[]
                       : _splits.map((s) {
                         return SplitItemsCompanion(
-                          id: drift.Value(_uuid.v4()),
                           transactionId: drift.Value(txnId),
                           amount: drift.Value(double.tryParse(s.amountController.text) ?? 0),
                           paidFor: drift.Value(s.paidFor.name),

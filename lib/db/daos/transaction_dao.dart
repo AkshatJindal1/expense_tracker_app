@@ -3,6 +3,7 @@ import '../app_database.dart';
 import '../tables/transactions.dart';
 import '../tables/split_items.dart';
 import 'package:expense_tracker_app/core/models/transaction_with_everything.dart';
+import 'package:uuid/uuid.dart';
 
 part 'transaction_dao.g.dart';
 
@@ -13,11 +14,25 @@ class TransactionDao extends DatabaseAccessor<AppDatabase> with _$TransactionDao
   // Insert a transaction with associated split items
   Future<void> insertTransactionWithSplits(
       TransactionsCompanion txn, List<SplitItemsCompanion> splits) async {
-    await transaction(() async {
-      await into(transactions).insert(txn);
-      for (final split in splits) {
-        await into(splitItems).insert(split);
-      }
+    // await transaction(() async {
+    //   await into(transactions).insert(txn);
+    //   // Group splits based on personID and paidFor to avoid multiple splits for same person.
+    //   final Map<(String?, String), double> groupedSplits = {};
+    //   for (final split in splits) {
+    //     final key = (split.personId.value, split.paidFor.value);
+    //     if (groupedSplits.containsKey(key)) {
+    //       groupedSplits[key] = groupedSplits[key]! + split.amount.value;
+    //     } else {
+    //       groupedSplits[key] = split.amount.value;
+    //     }
+    //     await into(splitItems).insert(split);
+    //   }
+    // });
+    final mergedSplits = _mergeSplitItems(txn.id.value, splits);
+
+    await batch((b) {
+      b.insert(transactions, txn);
+      b.insertAll(splitItems, mergedSplits);
     });
   }
 
@@ -25,10 +40,11 @@ class TransactionDao extends DatabaseAccessor<AppDatabase> with _$TransactionDao
     TransactionsCompanion txn,
     List<SplitItemsCompanion> splits,
   ) async {
+    final mergedSplits = _mergeSplitItems(txn.id.value, splits);
     await batch((b) {
       b.update(transactions, txn);
       b.deleteWhere(splitItems, (s) => s.transactionId.equals(txn.id.value));
-      b.insertAll(splitItems, splits);
+      b.insertAll(splitItems, mergedSplits);
     });
   }
 
@@ -49,6 +65,40 @@ class TransactionDao extends DatabaseAccessor<AppDatabase> with _$TransactionDao
   Future<void> deleteTransaction(String txnId) async {
     await (delete(transactions)..where((t) => t.id.equals(txnId))).go();
   }
+
+  List<SplitItemsCompanion> _mergeSplitItems(
+    String txnId,
+    List<SplitItemsCompanion> splits,
+  ) {
+    final Map<(String?, String), double> groupedAmounts = {};
+    final Map<(String?, String), bool> isSplitwiseMap = {};
+
+    for (final s in splits) {
+      final key = (s.personId.value, s.paidFor.value);
+
+      groupedAmounts.update(key, (val) => val + s.amount.value,
+          ifAbsent: () => s.amount.value);
+
+      if (s.isSplitwise.value) {
+        isSplitwiseMap[key] = true;
+      }
+    }
+
+    return groupedAmounts.entries.map((entry) {
+      final (personId, paidFor) = entry.key;
+      final amount = entry.value;
+
+      return SplitItemsCompanion(
+        id: Value(const Uuid().v4()),
+        transactionId: Value(txnId),
+        amount: Value(amount),
+        personId: Value(personId),
+        paidFor: Value(paidFor),
+        isSplitwise: Value(isSplitwiseMap[entry.key] ?? false),
+      );
+    }).toList();
+  }
+
 
   Future<TransactionWithEverything> _mapFullTransactions(Transaction txn) async {
     // final txnRows = await select(transactions).get();

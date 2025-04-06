@@ -122,7 +122,9 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
 
             return ListTile(
               selected: selected,
-              selectedTileColor: Colors.grey[900],
+              selectedTileColor: Theme.of(context).brightness == Brightness.dark
+                ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)
+                : Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
               onLongPress: () {
                 setState(() {
                   _selectionMode = true;
