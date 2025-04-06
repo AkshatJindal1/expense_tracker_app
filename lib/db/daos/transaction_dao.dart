@@ -21,6 +21,17 @@ class TransactionDao extends DatabaseAccessor<AppDatabase> with _$TransactionDao
     });
   }
 
+  Future<void> updateTransactionWithSplits(
+    TransactionsCompanion txn,
+    List<SplitItemsCompanion> splits,
+  ) async {
+    await batch((b) {
+      b.update(transactions, txn);
+      b.deleteWhere(splitItems, (s) => s.transactionId.equals(txn.id.value));
+      b.insertAll(splitItems, splits);
+    });
+  }
+
   // Get all transactions (basic)
   Future<List<TransactionWithEverything>> getAllTransactions() async {
     final txnRows = await select(transactions).get();
