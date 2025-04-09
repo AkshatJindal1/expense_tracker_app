@@ -1,6 +1,7 @@
 import 'package:expense_tracker_app/core/models/enums.dart';
 import 'package:expense_tracker_app/features/transactions/views/add_transaction_screen.dart';
 import 'package:expense_tracker_app/features/transactions/widgets/add_transaction_button.dart';
+import 'package:expense_tracker_app/features/transactions/widgets/app_drawer.dart';
 import 'package:expense_tracker_app/features/transactions/widgets/delete_transactions_button.dart';
 import 'package:expense_tracker_app/features/transactions/widgets/transaction_type_choicechip.dart';
 import 'package:flutter/material.dart';
@@ -36,6 +37,7 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
         }
       },
       child: Scaffold(
+        drawer: AppDrawer(),
         appBar: AppBar(
           title: Text(
             _selectionMode
