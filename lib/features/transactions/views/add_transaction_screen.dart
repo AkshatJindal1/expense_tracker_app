@@ -3,28 +3,27 @@ import 'package:expense_tracker_app/core/models/transaction_with_everything.dart
 import 'package:expense_tracker_app/db/app_database.dart';
 import 'package:expense_tracker_app/db/providers.dart';
 import 'package:expense_tracker_app/core/models/enums.dart';
+import 'package:expense_tracker_app/features/transactions/widgets/fee_section.dart';
+import 'package:expense_tracker_app/features/transactions/widgets/split_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
-class AddTransactionScreen extends ConsumerStatefulWidget {
+import '../widgets/amount_input.dart';
+import '../widgets/transaction_type_dropdown.dart';
+import '../widgets/source_dropdown.dart';
+import '../widgets/category_dropdown.dart';
+import '../widgets/destination_dropdown.dart';
 
+class AddTransactionScreen extends ConsumerStatefulWidget {
   final TransactionType? defaultType;
   final TransactionWithEverything? existing;
 
   const AddTransactionScreen({super.key, this.existing, this.defaultType});
 
   @override
-  ConsumerState<AddTransactionScreen> createState() => _AddTransactionScreenState();
-}
-
-class _SplitFormEntry {
-  final TextEditingController amountController = TextEditingController();
-  PaidFor paidFor = PaidFor.self;
-  String? personId;
-  bool isSplitwise = false;
-
-  bool _hasListner = false;
+  ConsumerState<AddTransactionScreen> createState() =>
+      _AddTransactionScreenState();
 }
 
 class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
@@ -38,7 +37,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   String? _selectedFeeSourceId;
   TransactionType _transactionType = TransactionType.expense;
   String? _category;
-  List<_SplitFormEntry> _splits = [];
+  List<SplitFormEntry> _splits = [];
 
   bool _feeSourceManuallySelected = false;
 
@@ -54,15 +53,17 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       _transactionType = TransactionType.values.byName(txn.transactionType);
       _category = txn.category;
 
-      _splits = widget.existing!.splits.map((s) {
-        final entry = _SplitFormEntry()
-          ..amountController.text = s.split.amount.toString()
-          ..paidFor = PaidFor.values.byName(s.split.paidFor)
-          ..personId = s.split.personId
-          ..isSplitwise = s.split.isSplitwise;
+      _splits =
+          widget.existing!.splits.map((s) {
+            final entry =
+                SplitFormEntry()
+                  ..amountController.text = s.split.amount.toString()
+                  ..paidFor = PaidFor.values.byName(s.split.paidFor)
+                  ..personId = s.split.personId
+                  ..isSplitwise = s.split.isSplitwise;
 
-          return entry;
-      }).toList();
+            return entry;
+          }).toList();
     } else {
       _transactionType = widget.defaultType ?? TransactionType.expense;
     }
@@ -81,11 +82,86 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     return (_splitTotal - txnAmount).abs() > 0.01;
   }
 
+  void _addTransaction() async {
+    if (_formKey.currentState!.validate() && _selectedSourceId != null) {
+      final isEdit = widget.existing != null;
+      final txnId = isEdit ? widget.existing!.txn.id : _uuid.v4();
+      final db = ref.read(appDatabaseProvider);
+      final txn = TransactionsCompanion(
+        id: drift.Value(txnId),
+        transactionType: drift.Value(_transactionType.name),
+        amount: drift.Value(double.parse(_amountController.text)),
+        sourceId: drift.Value(_selectedSourceId!),
+        toSourceId:
+            _transactionType == TransactionType.transfer
+                ? drift.Value(_selectedSourceId!)
+                : const drift.Value.absent(),
+        fee:
+            _transactionType == TransactionType.transfer &&
+                    _feeController.text.isNotEmpty
+                ? drift.Value(double.parse(_feeController.text))
+                : const drift.Value.absent(),
+        feeSourceId:
+            _transactionType == TransactionType.transfer &&
+                    _feeController.text.isNotEmpty
+                ? drift.Value(_selectedFeeSourceId!)
+                : const drift.Value.absent(),
+        timestamp: drift.Value(DateTime.now()),
+        category: drift.Value(_category ?? 'General'),
+      );
+
+      final totalAmount = double.tryParse(_amountController.text) ?? 0;
+      if (_splits.isEmpty) {
+        _splits.add(
+          SplitFormEntry()
+            ..paidFor = PaidFor.self
+            ..amountController.text = totalAmount.toStringAsFixed(2),
+        );
+      }
+
+      if (_splitTotalMismatch) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Split total does not match transaction amount'),
+          ),
+        );
+        return;
+      }
+
+      final splitCompanions =
+          _transactionType == TransactionType.transfer
+              ? <SplitItemsCompanion>[]
+              : _splits.map((s) {
+                return SplitItemsCompanion(
+                  transactionId: drift.Value(txnId),
+                  amount: drift.Value(
+                    double.tryParse(s.amountController.text) ?? 0,
+                  ),
+                  paidFor: drift.Value(s.paidFor.name),
+                  personId: drift.Value(s.personId),
+                  isSplitwise: drift.Value(s.isSplitwise),
+                );
+              }).toList();
+
+      if (isEdit) {
+        await db.transactionDao.updateTransactionWithSplits(
+          txn,
+          splitCompanions,
+        );
+      } else {
+        await ref
+            .read(appDatabaseProvider)
+            .transactionDao
+            .insertTransactionWithSplits(txn, splitCompanions);
+      }
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final db = ref.watch(appDatabaseProvider);
-
     return Scaffold(
       appBar: AppBar(title: const Text('Add Transaction')),
       body: Padding(
@@ -94,105 +170,36 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           key: _formKey,
           child: ListView(
             children: [
-              // Amount
-              TextFormField(
-                controller: _amountController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Amount'),
-                validator: (val) => val == null || val.isEmpty ? 'Enter amount' : null,
-              ),
+              AmountInput(controller: _amountController),
 
-              const SizedBox(height: 12),
-
-              // Transaction type
-              DropdownButtonFormField<TransactionType>(
+              TransactionTypeDropdown(
                 value: _transactionType,
-                items: TransactionType.values.map((type) {
-                  return DropdownMenuItem(
-                    value: type,
-                    child: Text(type.label),
-                  );
-                }).toList(),
                 onChanged: (val) => setState(() => _transactionType = val!),
-                decoration: const InputDecoration(labelText: 'Transaction Type'),
               ),
-
-              const SizedBox(height: 12),
 
               // Source
-              FutureBuilder<List<Source>>(
-                future: db.select(db.sources).get(),
-                builder: (context, snapshot) {
-                  final sources = snapshot.data ?? [];
-                  return DropdownButtonFormField<String>(
-                    value: _selectedSourceId,
-                    items: sources
-                        .map((s) => DropdownMenuItem(value: s.id, child: Text(s.name)))
-                        .toList(),
-                    onChanged: (val) => setState(() {
-                      _selectedSourceId = val;
-                      if (!_feeSourceManuallySelected) {
-                        _selectedFeeSourceId = val;
-                      }
-                    }),
-                    decoration: const InputDecoration(labelText: 'Source'),
-                  );
-                },
+              SourceDropdown(
+                selectedSourceId: _selectedSourceId,
+                onChanged: (val) => setState(() => _selectedSourceId = val),
               ),
-              
-              
 
-              if (_transactionType == TransactionType.transfer)
-                ...[
-                  const SizedBox(height: 12),
-                  FutureBuilder<List<Source>>(
-                    future: db.select(db.sources).get(),
-                    builder: (context, snapshot) {
-                      final sources = snapshot.data ?? [];
-                      return DropdownButtonFormField<String>(
-                        value: _selectedToSourceId,
-                        items: sources
-                          .where((s) => s.id != _selectedSourceId)
-                          .map((s) => DropdownMenuItem(value: s.id, child: Text((s.name))))
-                          .toList(),
-                        onChanged: (val) => setState(() =>  _selectedToSourceId = val),
-                        decoration: const InputDecoration(labelText: 'Destination Source'),
-                        validator: (val) {
-                          if (_transactionType == TransactionType.transfer && (val == null || val.isEmpty)) {
-                            return 'Please select a destination source';
-                          }
-                          return null;
-                        },
-                        );
-                    }
-                  ),
+              if (_transactionType == TransactionType.transfer) ...[
+                DestinationDropdown(
+                  selectedToSourceId: _selectedToSourceId,
+                  excludeSourceId: _selectedSourceId,
+                  onChanged: (val) => setState(() => _selectedToSourceId = val),
+                ),
 
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _feeController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Fee Amount (optional)'),
-                  ),
-                  FutureBuilder<List<Source>>(
-                    future: db.select(db.sources).get(),
-                    builder: (context, snapshot) {
-                      final sources = snapshot.data ?? [];
-                      return DropdownButtonFormField<String>(
-                        value: _selectedFeeSourceId,
-                        items: sources
-                            .map((s) => DropdownMenuItem(value: s.id, child: Text(s.name)))
-                            .toList(),
-                        onChanged: (val) => setState(() {
-                          _feeSourceManuallySelected = true;
-                          _selectedFeeSourceId = val;
-                        }),
-                        decoration: const InputDecoration(labelText: 'Fee Paid From'),
-                      );
-                    },
-                  ),
-                ],
-
-              const SizedBox(height: 12),
+                FeeSection(
+                  feeController: _feeController,
+                  selectedFeeSourceId: _selectedFeeSourceId,
+                  onChanged:
+                      (val) => setState(() {
+                        _feeSourceManuallySelected = true;
+                        _selectedFeeSourceId = val;
+                      }),
+                ),
+              ],
 
               // Category
               TextFormField(
@@ -200,171 +207,18 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 onChanged: (val) => _category = val,
               ),
 
-              if (_transactionType != TransactionType.transfer)
-              ...[
-                const SizedBox(height: 24),
-                Text('Split Expense', style: Theme.of(context).textTheme.titleMedium),
-
-                const SizedBox(height: 8),
-                ..._splits.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final split = entry.value;
-                  if (!split._hasListner) {
-                    split.amountController.addListener(() => setState(() {}));
-                    split._hasListner = true;
-                  }
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: Stack(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Split ${index + 1}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                              TextFormField(
-                                controller: split.amountController,
-                                decoration: const InputDecoration(labelText: 'Amount'),
-                                keyboardType: TextInputType.number,
-                                validator: (val) => val == null || val.isEmpty ? 'Enter amount' : null,
-                              ),
-
-                              DropdownButtonFormField<PaidFor>(
-                                value: split.paidFor,
-                                decoration: const InputDecoration(labelText: 'Paid For'),
-                                items: PaidFor.values.map((pf) {
-                                  return DropdownMenuItem(value: pf, child: Text(pf.label));
-                                }).toList(),
-                                onChanged: (val) {
-                                  setState(() => split.paidFor = val!);
-                                },
-                              ),
-
-                              // Person picker (only when someoneElse)
-                              if (split.paidFor == PaidFor.someoneElse)
-                                FutureBuilder(
-                                  future: ref.read(appDatabaseProvider).select(ref.read(appDatabaseProvider).persons).get(),
-                                  builder: (context, snapshot) {
-                                    final people = snapshot.data ?? [];
-                                    return DropdownButtonFormField<String>(
-                                      value: split.personId,
-                                      decoration: const InputDecoration(labelText: 'Person'),
-                                      items: people
-                                          .map((p) => DropdownMenuItem(value: p.id, child: Text(p.name)))
-                                          .toList(),
-                                      onChanged: (val) {
-                                        setState(() => split.personId = val);
-                                      },
-                                    );
-                                  },
-                                ),
-
-                              CheckboxListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: const Text('On Splitwise'),
-                                value: split.isSplitwise,
-                                onChanged: (val) => setState(() => split.isSplitwise = val ?? false),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Delete button.
-                        Positioned(
-                          top: 0,
-                          right: 0,
-                          child: IconButton(
-                            icon: const Icon(Icons.close, size: 20),
-                            tooltip: 'Remove Split',
-                            onPressed: () {
-                              setState(() {
-                                _splits.removeAt(index);
-                              });
-                            },
-                          )
-                        )
-                      ],
-                    )
-                  );
-                }),
-                if (_splits.isNotEmpty)
-                  Text(
-                    'Split Total: ₹${_splitTotal.toStringAsFixed(2)} / ₹${_amountController.text}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: _splitTotalMismatch ? Colors.red : Colors.green,
-                    ),
-                  ),
-                
-                TextButton.icon(
-                  onPressed: () {
-                    setState(() => _splits.add(_SplitFormEntry()));
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Split'),
+              if (_transactionType == TransactionType.expense)
+                SplitSection(
+                  splits: _splits,
+                  onAddSplit:
+                      () => setState(() => _splits.add(SplitFormEntry())),
+                  onRemoveSplit: (i) => setState(() => _splits.removeAt(i)),
+                  triggerUpdate: () => setState(() {}),
+                  totalExpenseController: _amountController,
                 ),
 
-              const SizedBox(height: 24),
-              ],
-
               ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState!.validate() && _selectedSourceId != null) {
-                    final isEdit = widget.existing != null;
-                    final txnId = isEdit ? widget.existing!.txn.id : _uuid.v4();
-                    final db = ref.read(appDatabaseProvider);
-                    final txn = TransactionsCompanion(
-                      id: drift.Value(txnId),
-                      transactionType: drift.Value(_transactionType.name),
-                      amount: drift.Value(double.parse(_amountController.text)),
-                      sourceId: drift.Value(_selectedSourceId!),
-                      toSourceId: _transactionType == TransactionType.transfer
-                        ? drift.Value(_selectedSourceId!)
-                        : const drift.Value.absent(),
-                      fee: _transactionType == TransactionType.transfer && _feeController.text.isNotEmpty
-                        ? drift.Value(double.parse(_feeController.text))
-                        : const drift.Value.absent(),
-                      feeSourceId: _transactionType == TransactionType.transfer && _feeController.text.isNotEmpty
-                        ? drift.Value(_selectedFeeSourceId!)
-                        : const drift.Value.absent(),
-                      timestamp: drift.Value(DateTime.now()),
-                      category: drift.Value(_category ?? 'General'),
-                    );
-
-                    final totalAmount = double.tryParse(_amountController.text) ?? 0;
-                    if (_splits.isEmpty) {
-                      _splits.add(_SplitFormEntry()
-                        ..paidFor = PaidFor.self
-                        ..amountController.text = totalAmount.toStringAsFixed(2));
-                    }
-
-                    if (_splitTotalMismatch) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Split total does not match transaction amount')),
-                      );
-                      return;
-                    }
-
-                    final splitCompanions = _transactionType == TransactionType.transfer
-                      ?  <SplitItemsCompanion>[]
-                      : _splits.map((s) {
-                        return SplitItemsCompanion(
-                          transactionId: drift.Value(txnId),
-                          amount: drift.Value(double.tryParse(s.amountController.text) ?? 0),
-                          paidFor: drift.Value(s.paidFor.name),
-                          personId: drift.Value(s.personId),
-                          isSplitwise: drift.Value(s.isSplitwise),
-                        );
-                      }).toList();
-
-                    if (isEdit) {
-                      await db.transactionDao.updateTransactionWithSplits(txn, splitCompanions);
-                    } else {
-                      await ref.read(appDatabaseProvider).transactionDao.insertTransactionWithSplits(txn, splitCompanions);
-                    }
-                    Navigator.pop(context);
-                  }
-                },
+                onPressed: _addTransaction,
                 child: const Text('Add Transaction'),
               ),
             ],

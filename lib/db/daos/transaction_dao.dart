@@ -14,20 +14,6 @@ class TransactionDao extends DatabaseAccessor<AppDatabase> with _$TransactionDao
   // Insert a transaction with associated split items
   Future<void> insertTransactionWithSplits(
       TransactionsCompanion txn, List<SplitItemsCompanion> splits) async {
-    // await transaction(() async {
-    //   await into(transactions).insert(txn);
-    //   // Group splits based on personID and paidFor to avoid multiple splits for same person.
-    //   final Map<(String?, String), double> groupedSplits = {};
-    //   for (final split in splits) {
-    //     final key = (split.personId.value, split.paidFor.value);
-    //     if (groupedSplits.containsKey(key)) {
-    //       groupedSplits[key] = groupedSplits[key]! + split.amount.value;
-    //     } else {
-    //       groupedSplits[key] = split.amount.value;
-    //     }
-    //     await into(splitItems).insert(split);
-    //   }
-    // });
     final mergedSplits = _mergeSplitItems(txn.id.value, splits);
 
     await batch((b) {
@@ -101,8 +87,6 @@ class TransactionDao extends DatabaseAccessor<AppDatabase> with _$TransactionDao
 
 
   Future<TransactionWithEverything> _mapFullTransactions(Transaction txn) async {
-    // final txnRows = await select(transactions).get();
-
     final source = await (select(sources)..where((s) => s.id.equals(txn.sourceId))).getSingleOrNull();
     final destination = txn.toSourceId != null
         ? await (select(sources)..where((s) => s.id.equals(txn.toSourceId!))).getSingleOrNull()
