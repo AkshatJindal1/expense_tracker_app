@@ -1,3 +1,4 @@
+import 'package:expense_tracker_app/features/transactions/views/loan_center_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_tracker_app/features/transactions/views/transaction_list_screen.dart';
 // import 'package:expense_tracker_app/features/loans/views/loan_center_screen.dart';
@@ -73,7 +74,7 @@ class AppDrawer extends StatelessWidget {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const TransactionListScreen(),
+                    builder: (_) => const LoanCenterScreen(),
                   ),
                 );
               });
