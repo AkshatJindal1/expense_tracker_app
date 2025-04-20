@@ -42,10 +42,21 @@ class TransactionDao extends DatabaseAccessor<AppDatabase> with _$TransactionDao
 
   // Watch all transactions (stream for UI)
   Stream<List<TransactionWithEverything>> watchAllTransactions() {
-    return select(transactions).watch().asyncMap((txns) async {
+    final txnQuery = select(transactions)
+    ..orderBy([(t) => OrderingTerm.desc(t.timestamp)]);
+    return txnQuery.watch().asyncMap((txns) async {
       return Future.wait(txns.map(_mapFullTransactions).toList());
     });
   }
+
+  Stream<List<TransactionWithEverything>> watchRecentTransactions({int limit = 4}) {
+  final txnQuery = (select(transactions)
+    ..orderBy([(t) => OrderingTerm.desc(t.timestamp)])
+    ..limit(limit));
+  return txnQuery.watch().asyncMap((txns) async {
+    return Future.wait(txns.map(_mapFullTransactions).toList());
+  });
+}
 
   // Delete a transaction and its splits
   Future<void> deleteTransaction(String txnId) async {

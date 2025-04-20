@@ -8,3 +8,10 @@ final allTransactionsProvider =
   final dao = ref.watch(transactionDaoProvider);
   return dao.watchAllTransactions();
 });
+
+// StreamProvider for watching recent transactions (live updates)
+final recentTransactionsStreamProvider =
+    StreamProvider<List<TransactionWithEverything>>((ref) {
+  final dao = ref.watch(transactionDaoProvider);
+  return dao.watchRecentTransactions();
+});

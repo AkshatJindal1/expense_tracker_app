@@ -12,7 +12,6 @@ import 'package:uuid/uuid.dart';
 import '../widgets/amount_input.dart';
 import '../widgets/transaction_type_dropdown.dart';
 import '../widgets/source_dropdown.dart';
-import '../widgets/category_dropdown.dart';
 import '../widgets/destination_dropdown.dart';
 
 class AddTransactionScreen extends ConsumerStatefulWidget {

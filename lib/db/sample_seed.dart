@@ -6,6 +6,12 @@ import 'package:expense_tracker_app/core/models/enums.dart';
 final _uuid = Uuid();
 
 Future<void> insertSampleData(AppDatabase db) async {
+  // Clear existing data first
+  await db.delete(db.splitItems).go();
+  await db.delete(db.transactions).go();
+  await db.delete(db.sources).go();
+  await db.delete(db.persons).go();
+
   // Insert sources
   final hdfcBankId = _uuid.v4();
   await db.into(db.sources).insert(SourcesCompanion(
@@ -24,10 +30,10 @@ Future<void> insertSampleData(AppDatabase db) async {
   ));
 
   // Insert person
-  final rahulId = _uuid.v4();
+  final abhilashaId = _uuid.v4();
   await db.into(db.persons).insert(PersonsCompanion(
-    id: Value(rahulId),
-    name: Value('Rahul'),
+    id: Value(abhilashaId),
+    name: Value('Abhilasha'),
   ));
 
   // Insert transaction
@@ -38,7 +44,7 @@ Future<void> insertSampleData(AppDatabase db) async {
     amount: Value(300),
     sourceId: Value(hdfcBankId),
     category: Value('Food'),
-    note: Value('Dinner with Rahul'),
+    note: Value('Dinner with Abhilasha'),
     timestamp: Value(DateTime.now()),
     needType: Value(NeedType.want.name),
   ));
@@ -57,7 +63,7 @@ Future<void> insertSampleData(AppDatabase db) async {
     transactionId: Value(txnId),
     amount: Value(150),
     paidFor: Value(PaidFor.someoneElse.name),
-    personId: Value(rahulId),
+    personId: Value(abhilashaId),
     isSplitwise: const Value(true),
   ));
 }
