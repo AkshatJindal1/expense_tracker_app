@@ -1,3 +1,4 @@
+import 'package:expense_tracker_app/db/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app.dart';
@@ -10,5 +11,10 @@ void main() async {
   await insertSampleData(db); // only for dev.
   final allTypes = await db.select(db.transactionTypes).get();
   print("Seeded types: ${allTypes.map((t) => t.name)}");
-  runApp(const ProviderScope(child: ExpenseTrackerApp()));
+  
+  runApp(ProviderScope(
+    overrides: [
+      appDatabaseProvider.overrideWithValue(db), // ✅ override cleanly
+    ],
+    child: ExpenseTrackerApp()));
 }

@@ -49,10 +49,11 @@ class AppDatabase extends _$AppDatabase {
   // late final transactionDao = TransactionDao(this, sourceDao);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) => m.createAll(),
     onUpgrade: (m, from, to) async {
       // define upgrade logic or simply recreate
       await m.createAll(); // use with caution (deletes all)
