@@ -1,3 +1,4 @@
+import 'package:expense_tracker_app/db/daos/transaction_category_dao.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app_database.dart';
 import 'daos/transaction_dao.dart';
@@ -19,4 +20,9 @@ final transactionDaoProvider = Provider<TransactionDao>((ref) {
 final sourceDaoProvider = Provider<SourceDao>((ref) {
   final db = ref.watch(appDatabaseProvider);
   return SourceDao(db);
+});
+
+final transactionCategoryDaoProvider = Provider<TransactionCategoryDao>((ref) {
+  final db = ref.watch(appDatabaseProvider);
+  return TransactionCategoryDao(db);
 });

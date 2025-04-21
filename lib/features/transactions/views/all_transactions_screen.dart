@@ -102,7 +102,7 @@ class _AllTransactionsScreenState extends ConsumerState<AllTransactionsScreen> {
                 final isDark = Theme.of(context).brightness == Brightness.dark;
                 var cardColor = Theme.of(context).cardColor;
                 var icon = Icons.more_horiz;
-                switch (txn.transactionType) {
+                switch (tx.transactionType!.id) {
                   case 'transfer':
                     cardColor =
                         isDark ? Colors.blue.shade900 : Colors.blue.shade50;
@@ -153,8 +153,9 @@ class _AllTransactionsScreenState extends ConsumerState<AllTransactionsScreen> {
                                       } else {
                                         _selectedTxnIds.remove(tx.txn.id);
                                       }
-                                      if (_selectedTxnIds.isEmpty)
+                                      if (_selectedTxnIds.isEmpty) {
                                         _selectionMode = false;
+                                      }
                                     });
                                   },
                                 )
@@ -178,7 +179,7 @@ class _AllTransactionsScreenState extends ConsumerState<AllTransactionsScreen> {
                           ),
                         ),
                         subtitle: Text(
-                          txn.category ?? "Not specified",
+                          tx.transactionCategory?.name ?? "Not specified",
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                         trailing: Column(

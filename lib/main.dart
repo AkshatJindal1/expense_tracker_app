@@ -8,7 +8,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final db = AppDatabase();
   await insertSampleData(db); // only for dev.
-  runApp(
-    const ProviderScope(child: ExpenseTrackerApp())
-  );
+  final allTypes = await db.select(db.transactionTypes).get();
+  print("Seeded types: ${allTypes.map((t) => t.name)}");
+  runApp(const ProviderScope(child: ExpenseTrackerApp()));
 }

@@ -1,3 +1,4 @@
+import 'package:expense_tracker_app/core/models/source_with_everything.dart';
 import 'package:expense_tracker_app/db/app_database.dart';
 
 class TransactionWithSplits {
@@ -16,16 +17,25 @@ class SplitItemWithPerson {
 
 class TransactionWithEverything {
   final Transaction txn;
-  final Source? source;
-  final Source? destination;
-  final Source? feeSource;
+  final TransactionType? transactionType;
+  final SourceWithEverything? source;
+  final SourceWithEverything? destination;
+  final SourceWithEverything? feeSource;
+  final TransactionCategory? transactionCategory;
   final List<SplitItemWithPerson> splits;
+
+  final SourceWithEverything? incomeSource;
+  final InvestmentType? investmentType;
 
   TransactionWithEverything({
     required this.txn,
+    this.transactionType,
     this.source,
     this.destination,
     this.feeSource,
+    this.transactionCategory,
     required this.splits,
+    this.incomeSource,
+    this.investmentType
   });
 }

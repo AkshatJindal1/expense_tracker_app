@@ -1,12 +1,16 @@
 import 'package:drift/drift.dart';
+import 'package:expense_tracker_app/db/tables/investment_types.dart';
 
 import 'package:expense_tracker_app/db/tables/sources.dart';
+import 'package:expense_tracker_app/db/tables/transaction_categories.dart';
+import 'package:expense_tracker_app/db/tables/transaction_types.dart';
 
 
 class Transactions extends Table {
   TextColumn get id => text()();
 
-  TextColumn get transactionType => text()();
+  @ReferenceName('transactionType')
+  TextColumn get transactionTypeId => text().references(TransactionTypes, #id)(); // Expense, Investment, Transfer, Income, Adjustment
 
   RealColumn get amount => real()(); // The main amount involved
 
@@ -21,7 +25,8 @@ class Transactions extends Table {
   @ReferenceName('feeSource')
   TextColumn get feeSourceId => text().nullable().references(Sources, #id)(); // Fee source if different
 
-  TextColumn get category => text().nullable()(); // Category for expenses/investments
+  @ReferenceName('category')
+  TextColumn get categoryId => text().nullable().references(TransactionCategories, #id)(); // Category for expenses/investments
 
   TextColumn get needType => text().nullable()();
 
@@ -29,9 +34,11 @@ class Transactions extends Table {
 
   DateTimeColumn get timestamp => dateTime()(); // When the transaction occurred
 
-  TextColumn get incomeSource => text().nullable()(); // For income
+  @ReferenceName('incomeSource')
+  TextColumn get incomeSourceId => text().nullable().references(Sources, #id)(); // For income
 
-  TextColumn get investmentType => text().nullable()(); // For investments
+  @ReferenceName('investmentType')
+  TextColumn get investmentTypeId => text().nullable().references(InvestmentTypes, #id)(); // For investments
 
   @override
   Set<Column> get primaryKey => {id};

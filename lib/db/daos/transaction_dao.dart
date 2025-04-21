@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:expense_tracker_app/db/daos/source_dao.dart';
 import '../app_database.dart';
 import '../tables/transactions.dart';
 import '../tables/split_items.dart';
@@ -9,7 +10,12 @@ part 'transaction_dao.g.dart';
 
 @DriftAccessor(tables: [Transactions, SplitItems])
 class TransactionDao extends DatabaseAccessor<AppDatabase> with _$TransactionDaoMixin {
-  TransactionDao(super.db);
+  // final AppDatabase db;
+  // final SourceDao sourceDao;
+
+  TransactionDao(AppDatabase db): super(db);
+
+  SourceDao get sourceDao => db.sourceDao;
 
   // Insert a transaction with associated split items
   Future<void> insertTransactionWithSplits(
@@ -98,12 +104,29 @@ class TransactionDao extends DatabaseAccessor<AppDatabase> with _$TransactionDao
 
 
   Future<TransactionWithEverything> _mapFullTransactions(Transaction txn) async {
-    final source = await (select(sources)..where((s) => s.id.equals(txn.sourceId))).getSingleOrNull();
+    final type = await (select(transactionTypes)..where((t) => t.id.equals(txn.transactionTypeId))).getSingleOrNull();
+    final source = await sourceDao.getSourceById(txn.sourceId);
+    // final source = await (select(sources)..where((s) => s.id.equals(txn.sourceId))).getSingleOrNull();
     final destination = txn.toSourceId != null
-        ? await (select(sources)..where((s) => s.id.equals(txn.toSourceId!))).getSingleOrNull()
+        ? await sourceDao.getSourceById(txn.toSourceId!)
+        // ? await (select(sources)..where((s) => s.id.equals(txn.toSourceId!))).getSingleOrNull()
         : null;
     final feeSource = txn.feeSourceId != null
-        ? await (select(sources)..where((s) => s.id.equals(txn.feeSourceId!))).getSingleOrNull()
+        ? await sourceDao.getSourceById(txn.feeSourceId!)
+        // ? await (select(sources)..where((s) => s.id.equals(txn.feeSourceId!))).getSingleOrNull()
+        : null;
+    
+
+    final category = txn.categoryId != null
+        ? await (select(transactionCategories)..where((c) => c.id.equals(txn.categoryId!))).getSingleOrNull()
+        : null;
+    
+    final incomeSource = txn.incomeSourceId != null
+        ? await sourceDao.getSourceById(txn.incomeSourceId!)
+        : null;
+    
+    final investment = txn.investmentTypeId != null
+        ? await (select(investmentTypes)..where((i) => i.id.equals(txn.investmentTypeId!))).getSingleOrNull()
         : null;
 
     final splitJoin = (select(splitItems)..where((s) => s.transactionId.equals(txn.id)))
@@ -119,9 +142,13 @@ class TransactionDao extends DatabaseAccessor<AppDatabase> with _$TransactionDao
 
     return TransactionWithEverything(
       txn: txn,
+      transactionType: type,
       source: source,
       destination: destination,
       feeSource: feeSource,
+      transactionCategory: category,
+      incomeSource: incomeSource,
+      investmentType: investment,
       splits: splits,
     );
   }
