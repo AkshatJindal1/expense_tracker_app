@@ -108,7 +108,7 @@ class HomeScreen extends ConsumerWidget {
                         icon: Icons.more_horiz,
                         amount: tx.txn.amount,
                         date: DateFormat('d MMM yy').format(tx.txn.timestamp),
-                        category: tx.transactionCategory!.name,
+                        category: tx.transactionCategory?.name ?? "Others",
                         type: tx.transactionType!.name,
                       );
                     }).toList(),

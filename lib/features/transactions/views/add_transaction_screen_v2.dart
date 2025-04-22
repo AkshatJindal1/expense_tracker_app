@@ -1,6 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:expense_tracker_app/core/models/enums.dart';
 import 'package:expense_tracker_app/core/models/source_with_everything.dart';
 import 'package:expense_tracker_app/core/models/transaction_with_everything.dart';
 import 'package:expense_tracker_app/db/app_database.dart';
@@ -24,23 +23,19 @@ class AddTransactionV2Screen extends ConsumerStatefulWidget {
 
 class _AddTransactionV2ScreenState
     extends ConsumerState<AddTransactionV2Screen> {
-  // final _transactionTypeIcons = {
-  //   TransactionType.expense: Icons.remove_circle_outline,
-  //   TransactionType.income: Icons.add_circle_outline,
-  //   TransactionType.transfer: Icons.swap_horiz,
-  //   TransactionType.investment: Icons.trending_up,
-  //   TransactionType.adjustment: Icons.build,
-  // };
-
   final _uuid = const Uuid();
   String _transactionTypeId = 'expense';
   TransactionType? _transcationType;
-  // IconData _selectTypeIcon = Icons.remove_circle_outline;
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
   final TextEditingController _amountController = TextEditingController();
+  final TextEditingController _transferFeeController = TextEditingController();
   SourceWithEverything? _selectedSource;
+  SourceWithEverything? _selectedDestination;
+  SourceWithEverything? _selectedTransferFeeSource;
   TransactionCategory? _selectedTxnCat;
+  InvestmentType? _selectedInvestmentType;
+  bool _showTransferFeeCard = false;
 
   final List<_SplitEntry> _splits = [];
 
@@ -61,11 +56,17 @@ class _AddTransactionV2ScreenState
       final txn = existing.txn;
       _amountController.text = txn.amount.toString();
       _selectedSource = existing.source;
+      _selectedDestination = existing.destination;
       _selectedDate = txn.timestamp;
       _selectedTime = TimeOfDay.fromDateTime(txn.timestamp);
       _transactionTypeId = existing.transactionType!.id;
-      // _transcationType = TransactionType.values.byName(txn.transactionType);
-
+      _selectedTxnCat = existing.transactionCategory;
+      _selectedInvestmentType = existing.investmentType;
+      if (txn.fee != null) {
+        _transferFeeController.text = txn.fee.toString();
+        _selectedTransferFeeSource = existing.feeSource;
+        _showTransferFeeCard = true;
+      }
       for (final s in existing.splits) {
         final entry =
             _SplitEntry()
@@ -157,19 +158,117 @@ class _AddTransactionV2ScreenState
               ),
 
               const SizedBox(height: 16),
-              ListTile(
-                leading: const Icon(Icons.category),
-                title: const Text('Category'),
-                trailing: const Text('Others'),
-                onTap: _showTransactionCategorySelector,
-              ),
+              if (_transactionTypeId == 'investment')
+                ListTile(
+                  leading: const Icon(Icons.category),
+                  title: const Text('Investment type'),
+                  trailing: Text(_selectedInvestmentType?.name ?? 'Select'),
+                  onTap: _showInvestmentTypeSelector,
+                ),
+              if (_transactionTypeId == 'expense')
+                ListTile(
+                  leading: const Icon(Icons.category),
+                  title: const Text('Category'),
+                  trailing: Text(_selectedTxnCat?.name ?? 'Select'),
+                  onTap: _showTransactionCategorySelector,
+                ),
 
               ListTile(
                 leading: const Icon(Icons.account_balance_wallet),
-                title: const Text('Payment mode'),
+                title: const Text('Source'),
                 trailing: Text(_selectedSource?.source.name ?? 'Select'),
-                onTap: _showSourceSelector,
+                onTap: () => _showSourceSelector('source'),
               ),
+              if (_transcationType!.id == 'transfer') ...[
+                ListTile(
+                  leading: const Icon(Icons.account_balance_wallet),
+                  title: const Text('Destination'),
+                  trailing: Text(_selectedDestination?.source.name ?? 'Select'),
+                  onTap: () => _showSourceSelector('destination'),
+                ),
+                const SizedBox(height: 24),
+
+                Text(
+                  'Fee details',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 20),
+                if (!_showTransferFeeCard)
+                  TextButton.icon(
+                    onPressed:
+                        () => setState(() {
+                          _showTransferFeeCard = true;
+                          // Set fee source to amount source.
+                          _selectedTransferFeeSource = _selectedSource;
+                        }),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add Fee'),
+                  ),
+                if (_showTransferFeeCard)
+                  Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Details',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed:
+                                    () => setState(() {
+                                      _showTransferFeeCard = false;
+                                      _selectedTransferFeeSource = null;
+                                      _transferFeeController.clear();
+                                    }),
+                              ),
+                            ],
+                          ),
+                          TextFormField(
+                            controller: _transferFeeController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              prefixIcon: Icon(Icons.currency_rupee),
+                              labelText: 'Amount',
+                              filled: true,
+                              fillColor:
+                                  Theme.of(context).scaffoldBackgroundColor,
+                              border: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                            ),
+                            style: Theme.of(context).textTheme.bodyMedium,
+                            onChanged: (_) => setState(() {}),
+                          ),
+                          const SizedBox(height: 16),
+                          ListTile(
+                            leading: const Icon(Icons.account_balance_wallet),
+                            title: const Text('Fee Source'),
+                            trailing: Text(
+                              _selectedTransferFeeSource?.source.name ??
+                                  'Select',
+                            ),
+                            onTap: () => _showSourceSelector('feeSource'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
 
               const SizedBox(height: 24),
               Text(
@@ -195,131 +294,136 @@ class _AddTransactionV2ScreenState
                 ),
               ),
 
-              const SizedBox(height: 24),
-              Text(
-                'Split Expense',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              if (_splits.isNotEmpty) ...[
-                const SizedBox(height: 20),
+              if (_transcationType?.id == 'expense') ...[
+                const SizedBox(height: 24),
                 Text(
-                  'Split total: ₹${_splitTotal.toStringAsFixed(2)} / ₹${_amountController.text}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: _splitTotalMismatch ? Colors.red : Colors.green,
-                  ),
+                  'Split Expense',
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-              ],
-              const SizedBox(height: 12),
-              ..._splits.asMap().entries.map((entry) {
-                final i = entry.key;
-                final s = entry.value;
-                return Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Split ${i + 1}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            if (_splits.isNotEmpty)
-                              IconButton(
-                                icon: const Icon(Icons.close),
-                                onPressed:
-                                    () => setState(() => _splits.removeAt(i)),
-                              ),
-                          ],
-                        ),
-                        TextField(
-                          controller: s.amountController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            labelText: 'Amount',
-                          ),
-                          onChanged: (_) => setState(() {}),
-                        ),
-                        const SizedBox(height: 8),
-                        ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: const Icon(Icons.person),
-                          title: const Text('Paid For'),
-                          trailing: Text(
-                            s.paidFor == 'self'
-                                ? 'Self'
-                                : s.person?.name ?? 'Someone Else',
-                          ),
-                          onTap: () async {
-                            final selected = await showModalBottomSheet<String>(
-                              context: context,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(20),
-                                ),
-                              ),
-                              builder:
-                                  (context) => Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      ListTile(
-                                        title: const Text('Self'),
-                                        onTap:
-                                            () =>
-                                                Navigator.pop(context, 'self'),
-                                      ),
-                                      ListTile(
-                                        title: const Text('Someone Else'),
-                                        onTap:
-                                            () => Navigator.pop(
-                                              context,
-                                              'someoneElse',
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                            );
-
-                            if (selected != null) {
-                              setState(() {
-                                s.paidFor = selected;
-                                if (s.paidFor == 'self') s.person = null;
-                              });
-                              if (selected == 'someoneElse') {
-                                _showPersonSelectorFor(s);
-                              }
-                            }
-                          },
-                        ),
-                        if (s.paidFor == 'someoneElse' && s.person != null)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 16),
-                            child: Text('Person: ${s.person!.name}'),
-                          ),
-                        SwitchListTile(
-                          value: s.isSplitwise,
-                          title: const Text('On Splitwise'),
-                          onChanged:
-                              (val) => setState(() => s.isSplitwise = val),
-                        ),
-                      ],
+                if (_splits.isNotEmpty) ...[
+                  const SizedBox(height: 20),
+                  Text(
+                    'Split total: ₹${_splitTotal.toStringAsFixed(2)} / ₹${_amountController.text}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: _splitTotalMismatch ? Colors.red : Colors.green,
                     ),
                   ),
-                );
-              }),
-              TextButton.icon(
-                onPressed: () => setState(() => _splits.add(_SplitEntry())),
-                icon: const Icon(Icons.add),
-                label: const Text('Add Split'),
-              ),
+                ],
+                const SizedBox(height: 12),
+                ..._splits.asMap().entries.map((entry) {
+                  final i = entry.key;
+                  final s = entry.value;
+                  return Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Split ${i + 1}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              if (_splits.isNotEmpty)
+                                IconButton(
+                                  icon: const Icon(Icons.close),
+                                  onPressed:
+                                      () => setState(() => _splits.removeAt(i)),
+                                ),
+                            ],
+                          ),
+                          TextField(
+                            controller: s.amountController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Amount',
+                            ),
+                            onChanged: (_) => setState(() {}),
+                          ),
+                          const SizedBox(height: 8),
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(Icons.person),
+                            title: const Text('Paid For'),
+                            trailing: Text(
+                              s.paidFor == 'self'
+                                  ? 'Self'
+                                  : s.person?.name ?? 'Someone Else',
+                            ),
+                            onTap: () async {
+                              final selected =
+                                  await showModalBottomSheet<String>(
+                                    context: context,
+                                    shape: const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(20),
+                                      ),
+                                    ),
+                                    builder:
+                                        (context) => Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            ListTile(
+                                              title: const Text('Self'),
+                                              onTap:
+                                                  () => Navigator.pop(
+                                                    context,
+                                                    'self',
+                                                  ),
+                                            ),
+                                            ListTile(
+                                              title: const Text('Someone Else'),
+                                              onTap:
+                                                  () => Navigator.pop(
+                                                    context,
+                                                    'someoneElse',
+                                                  ),
+                                            ),
+                                          ],
+                                        ),
+                                  );
+
+                              if (selected != null) {
+                                setState(() {
+                                  s.paidFor = selected;
+                                  if (s.paidFor == 'self') s.person = null;
+                                });
+                                if (selected == 'someoneElse') {
+                                  _showPersonSelectorFor(s);
+                                }
+                              }
+                            },
+                          ),
+                          if (s.paidFor == 'someoneElse' && s.person != null)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 16),
+                              child: Text('Person: ${s.person!.name}'),
+                            ),
+                          SwitchListTile(
+                            value: s.isSplitwise,
+                            title: const Text('On Splitwise'),
+                            onChanged:
+                                (val) => setState(() => s.isSplitwise = val),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+                TextButton.icon(
+                  onPressed: () => setState(() => _splits.add(_SplitEntry())),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Split'),
+                ),
+              ],
             ],
           ),
         );
@@ -368,11 +472,14 @@ class _AddTransactionV2ScreenState
     );
 
     if (selected != null) {
-      setState(() => _transcationType = selected);
+      setState(() {
+        _transcationType = selected;
+        _transactionTypeId = selected.id;
+      });
     }
   }
 
-  void _showSourceSelector() async {
+  void _showSourceSelector(String type) async {
     final selected = await showModalBottomSheet<SourceWithEverything>(
       context: context,
       isScrollControlled: true,
@@ -410,44 +517,23 @@ class _AddTransactionV2ScreenState
             );
           },
         );
-        // return FutureBuilder<List<Source>>(
-        //   future:
-        //       ref
-        //           .read(appDatabaseProvider)
-        //           .select(ref.read(appDatabaseProvider).sources)
-        //           .get(),
-        //   builder: (context, snapshot) {
-        //     if (!snapshot.hasData)
-        //       return const Center(child: CircularProgressIndicator());
-
-        //     return ListView(
-        //       padding: const EdgeInsets.all(16),
-        //       children:
-        //           snapshot.data!
-        //               .map(
-        //                 (source) => Card(
-        //                   shape: RoundedRectangleBorder(
-        //                     borderRadius: BorderRadius.circular(12),
-        //                   ),
-        //                   margin: const EdgeInsets.symmetric(vertical: 8),
-        //                   child: ListTile(
-        //                     leading: const Icon(
-        //                       Icons.account_balance_wallet_outlined,
-        //                     ),
-        //                     title: Text(source.name),
-        //                     // subtitle: Text('Balance: ₹${source.balance.toStringAsFixed(2)}'),
-        //                     onTap: () => Navigator.pop(context, source),
-        //                   ),
-        //                 ),
-        //               )
-        //               .toList(),
-        //     );
-        //   },
-        // );
       },
     );
 
-    if (selected != null) setState(() => _selectedSource = selected);
+    if (selected != null) {
+      setState(() {
+        switch (type) {
+          case 'source':
+            _selectedSource = selected;
+            break;
+          case 'destination':
+            _selectedDestination = selected;
+            break;
+          case 'feeSource':
+            _selectedTransferFeeSource = selected;
+        }
+      });
+    }
   }
 
   void _showTransactionCategorySelector() async {
@@ -475,9 +561,7 @@ class _AddTransactionV2ScreenState
                             ),
                             margin: const EdgeInsets.symmetric(vertical: 8),
                             child: ListTile(
-                              leading: const Icon(
-                                Icons.category,
-                              ),
+                              leading: const Icon(Icons.category),
                               title: Text(txnCat.name),
                               onTap: () => Navigator.pop(context, txnCat),
                             ),
@@ -491,6 +575,48 @@ class _AddTransactionV2ScreenState
     );
 
     if (selected != null) setState(() => _selectedTxnCat = selected);
+  }
+
+  void _showInvestmentTypeSelector() async {
+    final selected = await showModalBottomSheet<InvestmentType>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Consumer(
+          builder: (context, ref, _) {
+            final asyncInvestmentTypes = ref.watch(allInvestmentTypeProvider);
+            return asyncInvestmentTypes.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(child: Text('Error: $e')),
+              data:
+                  (sources) => ListView(
+                    padding: const EdgeInsets.all(16),
+                    children:
+                        sources.map((investmentType) {
+                          return Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            child: ListTile(
+                              leading: const Icon(Icons.category),
+                              title: Text(investmentType.name),
+                              onTap:
+                                  () => Navigator.pop(context, investmentType),
+                            ),
+                          );
+                        }).toList(),
+                  ),
+            );
+          },
+        );
+      },
+    );
+
+    if (selected != null) setState(() => _selectedInvestmentType = selected);
   }
 
   void _showPersonSelectorFor(_SplitEntry entry) async {
@@ -543,19 +669,28 @@ class _AddTransactionV2ScreenState
     final amount = double.tryParse(_amountController.text);
     if (amount == null || amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid amount')),
+        const SnackBar(content: Text('Please enter a valid amount.')),
       );
       return;
     }
 
     if (_selectedSource == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a valid source')),
+        const SnackBar(content: Text('Please select a valid source.')),
       );
       return;
     }
 
-    final txnId = _uuid.v4();
+    if (_transactionTypeId == 'transfer') {
+      if (_selectedDestination == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a valid destination.')),
+        );
+        return;
+      }
+    }
+
+    final txnId = isEdit ? widget.existing!.txn.id : _uuid.v4();
     final txn = TransactionsCompanion(
       id: drift.Value(txnId),
       transactionTypeId: drift.Value(_transcationType!.id),
@@ -570,7 +705,28 @@ class _AddTransactionV2ScreenState
           _selectedTime.minute,
         ),
       ),
-      categoryId: const drift.Value('Others'),
+      categoryId:
+          _transactionTypeId == 'expense' && _selectedTxnCat != null
+              ? drift.Value(_selectedTxnCat!.id)
+              : const drift.Value.absent(),
+      toSourceId:
+          _transactionTypeId == "transfer"
+              ? drift.Value(_selectedDestination!.source.id)
+              : const drift.Value.absent(),
+      fee:
+          _transactionTypeId == "transfer" &&
+                  _transferFeeController.text.isNotEmpty
+              ? drift.Value(double.parse(_transferFeeController.text))
+              : const drift.Value.absent(),
+      feeSourceId:
+          _transactionTypeId == "transfer" &&
+                  _transferFeeController.text.isNotEmpty
+              ? drift.Value(_selectedTransferFeeSource!.source.id)
+              : const drift.Value.absent(),
+      investmentTypeId:
+          _transactionTypeId == "investment"
+              ? drift.Value(_selectedInvestmentType!.id)
+              : const drift.Value.absent(),
     );
 
     final totalAmount = double.tryParse(_amountController.text) ?? 0;

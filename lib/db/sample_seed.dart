@@ -166,4 +166,25 @@ Future<void> insertSampleData(AppDatabase db) async {
     personId: Value(abhilashaId),
     isSplitwise: const Value(true),
   ));
+
+  await db.into(db.investmentTypes).insert(InvestmentTypesCompanion(
+    id: Value(_uuid.v4()),
+    name: const Value("SIP"),
+  ));
+  await db.into(db.investmentTypes).insert(InvestmentTypesCompanion(
+    id: Value(_uuid.v4()),
+    name: const Value("Stock"),
+  ));
+  await db.into(db.investmentTypes).insert(InvestmentTypesCompanion(
+    id: Value(_uuid.v4()),
+    name: const Value("Lumpsum"),
+  ));
+  await db.into(db.investmentTypes).insert(InvestmentTypesCompanion(
+    id: Value(_uuid.v4()),
+    name: const Value("Gold"),
+  ));
+  await db.into(db.investmentTypes).insert(InvestmentTypesCompanion(
+    id: Value(_uuid.v4()),
+    name: const Value("Cryptocurrency"),
+  ));
 }

@@ -28,3 +28,8 @@ final allTransactionCategoryProvider =
       final dao = ref.watch(transactionCategoryDaoProvider);
       return dao.watchAllTransactionCategory();
     });
+
+final allInvestmentTypeProvider = StreamProvider<List<InvestmentType>>((ref) {
+  final dao = ref.watch(investmentTypeDaoProvider);
+  return dao.watchAllInvestmentType();
+});

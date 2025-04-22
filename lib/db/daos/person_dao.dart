@@ -13,9 +13,9 @@ class PersonDao extends DatabaseAccessor<AppDatabase> with _$PersonDaoMixin {
 
   Stream<List<Person>> watchAllPersons() => select(persons).watch();
 
-  Future<void> insertSource(PersonsCompanion person) =>
+  Future<void> insertPerson(PersonsCompanion person) =>
       into(persons).insert(person, mode: InsertMode.insertOrReplace);
 
-  Future<void> deleteSource(String id) =>
+  Future<void> deletePerson(String id) =>
       (delete(persons)..where((tbl) => tbl.id.equals(id))).go();
 }

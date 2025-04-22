@@ -9,12 +9,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final db = AppDatabase();
   await insertSampleData(db); // only for dev.
-  final allTypes = await db.select(db.transactionTypes).get();
-  print("Seeded types: ${allTypes.map((t) => t.name)}");
-  
+
   runApp(ProviderScope(
     overrides: [
-      appDatabaseProvider.overrideWithValue(db), // ✅ override cleanly
+      appDatabaseProvider.overrideWithValue(db),
     ],
     child: ExpenseTrackerApp()));
 }

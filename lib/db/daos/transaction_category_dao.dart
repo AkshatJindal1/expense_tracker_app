@@ -21,9 +21,9 @@ class TransactionCategoryDao extends DatabaseAccessor<AppDatabase> with _$Transa
     return row;
   }
 
-  Future<void> insertSource(TransactionCategoriesCompanion tc) =>
+  Future<void> insertTransactionCategory(TransactionCategoriesCompanion tc) =>
       into(transactionCategories).insert(tc, mode: InsertMode.insertOrReplace);
 
-  Future<void> deleteSource(String id) =>
+  Future<void> deleteTransactionCategory(String id) =>
       (delete(transactionCategories)..where((tbl) => tbl.id.equals(id))).go();
 }

@@ -9,17 +9,17 @@ import 'package:uuid/uuid.dart';
 part 'transaction_dao.g.dart';
 
 @DriftAccessor(tables: [Transactions, SplitItems])
-class TransactionDao extends DatabaseAccessor<AppDatabase> with _$TransactionDaoMixin {
-  // final AppDatabase db;
-  // final SourceDao sourceDao;
-
-  TransactionDao(AppDatabase db): super(db);
+class TransactionDao extends DatabaseAccessor<AppDatabase>
+    with _$TransactionDaoMixin {
+  TransactionDao(super.db);
 
   SourceDao get sourceDao => db.sourceDao;
 
   // Insert a transaction with associated split items
   Future<void> insertTransactionWithSplits(
-      TransactionsCompanion txn, List<SplitItemsCompanion> splits) async {
+    TransactionsCompanion txn,
+    List<SplitItemsCompanion> splits,
+  ) async {
     final mergedSplits = _mergeSplitItems(txn.id.value, splits);
 
     await batch((b) {
@@ -34,7 +34,7 @@ class TransactionDao extends DatabaseAccessor<AppDatabase> with _$TransactionDao
   ) async {
     final mergedSplits = _mergeSplitItems(txn.id.value, splits);
     await batch((b) {
-      b.update(transactions, txn);
+      b.insert(transactions, txn, mode: InsertMode.insertOrReplace);
       b.deleteWhere(splitItems, (s) => s.transactionId.equals(txn.id.value));
       b.insertAll(splitItems, mergedSplits);
     });
@@ -49,20 +49,23 @@ class TransactionDao extends DatabaseAccessor<AppDatabase> with _$TransactionDao
   // Watch all transactions (stream for UI)
   Stream<List<TransactionWithEverything>> watchAllTransactions() {
     final txnQuery = select(transactions)
-    ..orderBy([(t) => OrderingTerm.desc(t.timestamp)]);
+      ..orderBy([(t) => OrderingTerm.desc(t.timestamp)]);
     return txnQuery.watch().asyncMap((txns) async {
       return Future.wait(txns.map(_mapFullTransactions).toList());
     });
   }
 
-  Stream<List<TransactionWithEverything>> watchRecentTransactions({int limit = 4}) {
-  final txnQuery = (select(transactions)
-    ..orderBy([(t) => OrderingTerm.desc(t.timestamp)])
-    ..limit(limit));
-  return txnQuery.watch().asyncMap((txns) async {
-    return Future.wait(txns.map(_mapFullTransactions).toList());
-  });
-}
+  Stream<List<TransactionWithEverything>> watchRecentTransactions({
+    int limit = 4,
+  }) {
+    final txnQuery =
+        (select(transactions)
+          ..orderBy([(t) => OrderingTerm.desc(t.timestamp)])
+          ..limit(limit));
+    return txnQuery.watch().asyncMap((txns) async {
+      return Future.wait(txns.map(_mapFullTransactions).toList());
+    });
+  }
 
   // Delete a transaction and its splits
   Future<void> deleteTransaction(String txnId) async {
@@ -79,8 +82,11 @@ class TransactionDao extends DatabaseAccessor<AppDatabase> with _$TransactionDao
     for (final s in splits) {
       final key = (s.personId.value, s.paidFor.value);
 
-      groupedAmounts.update(key, (val) => val + s.amount.value,
-          ifAbsent: () => s.amount.value);
+      groupedAmounts.update(
+        key,
+        (val) => val + s.amount.value,
+        ifAbsent: () => s.amount.value,
+      );
 
       if (s.isSplitwise.value) {
         isSplitwiseMap[key] = true;
@@ -102,43 +108,56 @@ class TransactionDao extends DatabaseAccessor<AppDatabase> with _$TransactionDao
     }).toList();
   }
 
-
-  Future<TransactionWithEverything> _mapFullTransactions(Transaction txn) async {
-    final type = await (select(transactionTypes)..where((t) => t.id.equals(txn.transactionTypeId))).getSingleOrNull();
+  Future<TransactionWithEverything> _mapFullTransactions(
+    Transaction txn,
+  ) async {
+    final type =
+        await (select(transactionTypes)
+          ..where((t) => t.id.equals(txn.transactionTypeId))).getSingleOrNull();
     final source = await sourceDao.getSourceById(txn.sourceId);
     // final source = await (select(sources)..where((s) => s.id.equals(txn.sourceId))).getSingleOrNull();
-    final destination = txn.toSourceId != null
-        ? await sourceDao.getSourceById(txn.toSourceId!)
-        // ? await (select(sources)..where((s) => s.id.equals(txn.toSourceId!))).getSingleOrNull()
-        : null;
-    final feeSource = txn.feeSourceId != null
-        ? await sourceDao.getSourceById(txn.feeSourceId!)
-        // ? await (select(sources)..where((s) => s.id.equals(txn.feeSourceId!))).getSingleOrNull()
-        : null;
-    
+    final destination =
+        txn.toSourceId != null
+            ? await sourceDao.getSourceById(txn.toSourceId!)
+            // ? await (select(sources)..where((s) => s.id.equals(txn.toSourceId!))).getSingleOrNull()
+            : null;
+    final feeSource =
+        txn.feeSourceId != null
+            ? await sourceDao.getSourceById(txn.feeSourceId!)
+            // ? await (select(sources)..where((s) => s.id.equals(txn.feeSourceId!))).getSingleOrNull()
+            : null;
 
-    final category = txn.categoryId != null
-        ? await (select(transactionCategories)..where((c) => c.id.equals(txn.categoryId!))).getSingleOrNull()
-        : null;
-    
-    final incomeSource = txn.incomeSourceId != null
-        ? await sourceDao.getSourceById(txn.incomeSourceId!)
-        : null;
-    
-    final investment = txn.investmentTypeId != null
-        ? await (select(investmentTypes)..where((i) => i.id.equals(txn.investmentTypeId!))).getSingleOrNull()
-        : null;
+    final category =
+        txn.categoryId != null
+            ? await (select(transactionCategories)
+              ..where((c) => c.id.equals(txn.categoryId!))).getSingleOrNull()
+            : null;
 
-    final splitJoin = (select(splitItems)..where((s) => s.transactionId.equals(txn.id)))
-        .join([leftOuterJoin(persons, persons.id.equalsExp(splitItems.personId))]);
+    final incomeSource =
+        txn.incomeSourceId != null
+            ? await sourceDao.getSourceById(txn.incomeSourceId!)
+            : null;
+
+    final investment =
+        txn.investmentTypeId != null
+            ? await (select(investmentTypes)..where(
+              (i) => i.id.equals(txn.investmentTypeId!),
+            )).getSingleOrNull()
+            : null;
+
+    final splitJoin = (select(splitItems)
+      ..where((s) => s.transactionId.equals(txn.id))).join([
+      leftOuterJoin(persons, persons.id.equalsExp(splitItems.personId)),
+    ]);
 
     final joinedSplits = await splitJoin.get();
 
-    final splits = joinedSplits.map((row) {
-      final split = row.readTable(splitItems);
-      final person = row.readTableOrNull(persons);
-      return SplitItemWithPerson(split: split, person: person);
-    }).toList();
+    final splits =
+        joinedSplits.map((row) {
+          final split = row.readTable(splitItems);
+          final person = row.readTableOrNull(persons);
+          return SplitItemWithPerson(split: split, person: person);
+        }).toList();
 
     return TransactionWithEverything(
       txn: txn,
@@ -152,5 +171,4 @@ class TransactionDao extends DatabaseAccessor<AppDatabase> with _$TransactionDao
       splits: splits,
     );
   }
-
 }

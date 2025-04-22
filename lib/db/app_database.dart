@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:expense_tracker_app/db/daos/investment_type_dao.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -40,6 +41,7 @@ part 'app_database.g.dart';
     PersonDao,
     SourceTypeDao,
     TransactionCategoryDao,
+    InvestmentTypeDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {

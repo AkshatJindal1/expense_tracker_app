@@ -9,13 +9,13 @@ part 'source_type_dao.g.dart';
 class SourceTypeDao extends DatabaseAccessor<AppDatabase> with _$SourceTypeDaoMixin {
   SourceTypeDao(super.db);
 
-  Future<List<SourceType>> getAllsourceType() => select(sourceTypes).get();
+  Future<List<SourceType>> getAllSourceType() => select(sourceTypes).get();
 
-  Stream<List<SourceType>> watchAllsourceCategory() => select(sourceTypes).watch();
+  Stream<List<SourceType>> watchAllSourceType() => select(sourceTypes).watch();
 
-  Future<void> insertSourceCategory(SourceTypesCompanion person) =>
-      into(sourceTypes).insert(person, mode: InsertMode.insertOrReplace);
+  Future<void> insertSourceType(SourceTypesCompanion sourceType) =>
+      into(sourceTypes).insert(sourceType, mode: InsertMode.insertOrReplace);
 
-  Future<void> deleteSourceCategory(String id) =>
+  Future<void> deleteSourceType(String id) =>
       (delete(sourceTypes)..where((tbl) => tbl.id.equals(id))).go();
 }
